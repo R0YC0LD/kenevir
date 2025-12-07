@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Cannabis Sativa | Botanik Deneyim</title>
+    <title>Sativa | Ultimate Experience</title>
     
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;600&family=Syncopate:wght@400;700&display=swap" rel="stylesheet">
@@ -11,244 +11,144 @@
     <style>
         :root {
             --c-bg: #050805;
-            --c-leaf-dark: #122915;
-            --c-leaf-light: #4caf50;
-            --c-smoke: #a8bdc4;
-            --c-ember: #ff4d00;
             --c-accent: #00ff88;
-            --font-main: 'Space Grotesk', sans-serif;
+            --c-ember: #ff4d00;
             --font-display: 'Syncopate', sans-serif;
+            --font-body: 'Space Grotesk', sans-serif;
         }
 
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-            user-select: none; /* Oyun için seçimleri kapat */
-        }
+        * { margin: 0; padding: 0; box-sizing: border-box; user-select: none; }
 
         body {
             background-color: var(--c-bg);
             color: #eee;
-            font-family: var(--font-main);
+            font-family: var(--font-body);
             overflow-x: hidden;
+            width: 100vw;
+            height: 100vh;
         }
 
-        /* --- CANVAS --- */
         #webgl-container {
             position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100vh;
-            z-index: -1;
+            top: 0; left: 0; width: 100%; height: 100%;
+            z-index: 1;
         }
 
-        /* --- UI ELEMENTS --- */
-        .overlay {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            pointer-events: none;
+        /* UI KATMANI */
+        .ui-layer {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
             z-index: 10;
+            pointer-events: none;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            padding: 2rem;
         }
 
         header {
-            padding: 3rem;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            mix-blend-mode: exclusion;
+            display: flex; justify-content: space-between; align-items: center;
+            mix-blend-mode: difference;
         }
 
         .logo {
             font-family: var(--font-display);
             font-weight: 700;
+            color: var(--c-accent);
             font-size: 1.5rem;
-            letter-spacing: 0.2rem;
-            color: var(--c-accent);
-            text-transform: uppercase;
-        }
-
-        /* --- HERO SECTION --- */
-        .hero {
-            height: 100vh;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            padding: 0 4rem;
-            position: relative;
-        }
-
-        h1 {
-            font-family: var(--font-display);
-            font-size: clamp(3rem, 6vw, 8rem);
-            text-transform: uppercase;
-            line-height: 0.85;
-            color: transparent;
-            -webkit-text-stroke: 1px rgba(255,255,255,0.8);
-            margin-bottom: 1rem;
-            pointer-events: auto;
-            transition: all 0.5s ease;
-        }
-
-        h1:hover {
-            -webkit-text-stroke: 1px var(--c-accent);
-            text-shadow: 0 0 30px rgba(0, 255, 136, 0.3);
-        }
-
-        .subtitle {
-            font-size: 1.2rem;
-            max-width: 500px;
-            color: rgba(255,255,255,0.6);
-            margin-top: 2rem;
-            border-left: 2px solid var(--c-accent);
-            padding-left: 1.5rem;
-        }
-
-        /* --- OYUN ARAYÜZÜ (MODAL) --- */
-        .game-ui {
-            position: fixed;
-            bottom: 3rem;
-            right: 3rem;
-            display: flex;
-            flex-direction: column;
-            align-items: flex-end;
-            gap: 1rem;
-            z-index: 100;
-            pointer-events: auto;
-        }
-
-        .btn-start {
-            background: rgba(0, 255, 136, 0.1);
-            border: 1px solid var(--c-accent);
-            color: var(--c-accent);
-            padding: 1rem 2rem;
-            font-family: var(--font-display);
-            font-size: 0.9rem;
-            cursor: pointer;
-            transition: all 0.3s;
-            text-transform: uppercase;
             letter-spacing: 2px;
         }
 
-        .btn-start:hover {
-            background: var(--c-accent);
-            color: #000;
-            box-shadow: 0 0 20px rgba(0, 255, 136, 0.4);
+        /* OYUN BAŞLATMA BUTONU */
+        .start-container {
+            position: absolute;
+            bottom: 3rem; right: 3rem;
+            pointer-events: auto;
         }
 
-        /* OYUN EKRANI */
-        #game-overlay {
+        .btn-glitch {
+            background: rgba(0, 255, 136, 0.05);
+            border: 1px solid var(--c-accent);
+            color: var(--c-accent);
+            padding: 1rem 3rem;
+            font-family: var(--font-display);
+            font-size: 1rem;
+            cursor: pointer;
+            transition: 0.3s;
+            text-transform: uppercase;
+        }
+
+        .btn-glitch:hover {
+            background: var(--c-accent);
+            color: #000;
+            box-shadow: 0 0 25px var(--c-accent);
+        }
+
+        /* OYUN ARAYÜZÜ (GİZLİ BAŞLAR) */
+        #game-hud {
             position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(5, 8, 5, 0.95);
-            backdrop-filter: blur(10px);
-            z-index: 200;
-            display: none; /* Başlangıçta gizli */
+            top: 0; left: 0; width: 100%; height: 100%;
+            z-index: 20;
+            display: none; /* JS ile açılacak */
             flex-direction: column;
             align-items: center;
             justify-content: center;
-            opacity: 0;
-            transition: opacity 1s ease;
+            background: rgba(0,0,0,0.6);
+            backdrop-filter: blur(5px);
         }
 
-        .game-instruction {
+        .hud-instruction {
             font-family: var(--font-display);
-            color: var(--c-accent);
+            color: #fff;
             margin-bottom: 2rem;
-            font-size: 1.2rem;
+            text-shadow: 0 0 10px rgba(255,255,255,0.5);
             text-align: center;
-            text-shadow: 0 0 10px rgba(0,255,136,0.5);
         }
 
-        /* SARMA ÇUBUĞU */
-        .roll-progress-container {
+        .progress-wrapper {
             width: 300px;
-            height: 4px;
-            background: #333;
-            border-radius: 2px;
-            margin-top: 20px;
+            height: 6px;
+            background: #222;
+            border-radius: 3px;
             overflow: hidden;
-            display: none;
+            display: none; /* Sadece sarma aşamasında görünür */
         }
 
-        .roll-progress-bar {
+        .progress-fill {
             width: 0%;
             height: 100%;
             background: var(--c-accent);
-            box-shadow: 0 0 10px var(--c-accent);
-            transition: width 0.1s linear;
-        }
-
-        /* SİGARA İÇME KONTROLLERİ */
-        .smoke-controls {
-            position: absolute;
-            bottom: 10%;
-            text-align: center;
-            display: none;
-            color: rgba(255,255,255,0.5);
-            font-size: 0.9rem;
+            box-shadow: 0 0 15px var(--c-accent);
+            transition: width 0.05s linear;
         }
 
         .btn-close {
             position: absolute;
-            top: 2rem;
-            right: 2rem;
-            background: none;
-            border: none;
-            color: #555;
-            font-size: 2rem;
+            top: 2rem; right: 2rem;
+            background: none; border: none;
+            color: #fff; font-size: 2rem;
             cursor: pointer;
-            transition: color 0.3s;
+            pointer-events: auto;
+            opacity: 0.5;
+            transition: 0.3s;
         }
-        .btn-close:hover { color: #fff; }
+        .btn-close:hover { opacity: 1; color: var(--c-accent); }
 
-        /* --- INFO SECTIONS --- */
-        .section-info {
-            min-height: 80vh;
-            padding: 4rem;
-            display: flex;
-            align-items: center;
+        /* HERO METİNLERİ */
+        .hero-text {
+            position: absolute;
+            top: 50%; left: 5%;
+            transform: translateY(-50%);
             pointer-events: none;
         }
-
-        .card {
-            background: rgba(20, 30, 20, 0.4);
-            border: 1px solid rgba(255,255,255,0.05);
-            padding: 3rem;
-            max-width: 600px;
-            backdrop-filter: blur(20px);
-            pointer-events: auto;
-            transform: translateY(50px);
-            opacity: 0;
-        }
-
-        .card h2 {
+        
+        h1 {
             font-family: var(--font-display);
-            color: #fff;
-            margin-bottom: 1.5rem;
-            font-size: 2rem;
-        }
-
-        .card p {
-            line-height: 1.6;
-            color: #ccc;
+            font-size: clamp(3rem, 5vw, 6rem);
+            line-height: 0.9;
+            color: transparent;
+            -webkit-text-stroke: 1px rgba(255,255,255,0.8);
             margin-bottom: 1rem;
-        }
-
-        .tag {
-            display: inline-block;
-            font-size: 0.7rem;
-            border: 1px solid var(--c-accent);
-            color: var(--c-accent);
-            padding: 5px 10px;
-            margin-right: 10px;
-            text-transform: uppercase;
         }
 
     </style>
@@ -257,95 +157,77 @@
 
     <div id="webgl-container"></div>
 
-    <header class="overlay">
-        <div class="logo">SATIVA // 420</div>
-        <div style="font-size: 0.8rem; letter-spacing: 2px;">EST. MÖ 2800</div>
-    </header>
-
-    <section class="hero overlay">
-        <h1>Doğal<br>Miras</h1>
-        <div class="subtitle">
-            Binlerce yıllık şifa, endüstri ve kültürün simgesi. 
-            <br>Sanal deneyim için aşağı kaydır veya oyunu başlat.
-        </div>
-    </section>
-
-    <div class="game-ui">
-        <button class="btn-start" id="start-game-btn">DENEYİMİ BAŞLAT</button>
-    </div>
-
-    <div id="game-overlay">
-        <button class="btn-close" id="close-game">×</button>
+    <div class="ui-layer">
+        <header>
+            <div class="logo">SATIVA PRO</div>
+            <div>V.4.20</div>
+        </header>
         
-        <div id="game-phase-text" class="game-instruction">HAZIRLANIYOR...</div>
-        
-        <div class="roll-progress-container" id="roll-ui">
-            <div class="roll-progress-bar" id="roll-bar"></div>
-        </div>
-        <div id="roll-hint" style="margin-top:10px; font-size: 0.8rem; color:#888; display:none;">
-            SARMAK İÇİN "BOŞLUK" TUŞUNA BASILI TUT
+        <div class="hero-text" id="main-hero">
+            <h1>DOĞAL<br>DÖNGÜ</h1>
+            <p style="color:#888; margin-top:1rem; letter-spacing:1px;">SANAL SARMA & İÇME DENEYİMİ</p>
         </div>
 
-        <div class="smoke-controls" id="smoke-ui">
-            <p>NEFES ÇEKMEK İÇİN <span style="color:var(--c-accent)">TIKLA VE TUT</span></p>
-            <p>DUMANI ÜFLEMEK İÇİN <span style="color:var(--c-accent)">BIRAK</span></p>
+        <div class="start-container">
+            <button class="btn-glitch" id="btn-start">SİMÜLASYONU BAŞLAT</button>
         </div>
     </div>
 
-    <section class="section-info" style="justify-content: flex-end;">
-        <div class="card" id="card-1">
-            <h2>Cannabis Sativa</h2>
-            <p>Kenevir, insanlık tarihinin en eski tarım bitkilerinden biridir. Endüstriyel liflerden tıbbi kullanımlara kadar geniş bir yelpazede hizmet verir.</p>
-            <div>
-                <span class="tag">Dayanıklı</span>
-                <span class="tag">Organik</span>
-                <span class="tag">Psikoaktif</span>
-            </div>
+    <div id="game-hud">
+        <button class="btn-close" id="btn-exit">×</button>
+        
+        <div id="hud-text" class="hud-instruction">HAZIRLANIYOR...</div>
+        
+        <div class="progress-wrapper" id="roll-bar-wrapper">
+            <div class="progress-fill" id="roll-bar-fill"></div>
         </div>
-    </section>
 
-    <section class="section-info">
-        <div class="card" id="card-2">
-            <h2>Terpenler & Aroma</h2>
-            <p>Bitkiye o karakteristik kokusunu veren moleküller: Terpenler. Limonen (narenciye), Mirsen (topraksı) ve Pinen (çam) en yaygın olanlarıdır.</p>
+        <div id="smoke-hint" class="hud-instruction" style="display:none; font-size: 0.8rem; color: #aaa;">
+            <span style="color:var(--c-accent)">SOL TIK BASILI TUT:</span> İÇİNE ÇEK & YAK<br><br>
+            <span style="color:var(--c-accent)">BIRAK:</span> DUMANI ÜFLE
         </div>
-    </section>
+    </div>
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/ScrollTrigger.min.js"></script>
 
     <script>
         // --- AYARLAR ---
-        const config = {
-            bg: 0x050805,
-            leafColor: 0x2d5a27,
-            smokeColor: 0xeeeeee,
-            jointColor: 0xe0e0e0,
-            emberColor: 0xff3300
+        const CONFIG = {
+            bgColor: 0x050805,
+            leafColor: 0x2e5c30,
+            jointLength: 4, // Başlangıç uzunluğu
+            burnSpeed: 0.005, // Kısalma hızı
+            smokeDensity: 20 // Üfleme sıklığı
         };
 
         let scene, camera, renderer;
-        let mainLeaf, jointGroup, emberMesh;
+        let mainLeafGroup, jointContainer, jointBody, emberMesh, ashMesh;
         let particles = [];
+        let smokeTexture;
         let mouse = new THREE.Vector2();
-        
-        // Oyun Durumları
-        let gameActive = false;
-        let gamePhase = 'idle'; // idle, rolling, smoking
-        let rollProgress = 0;
-        let isInhaling = false;
 
-        // --- BAŞLATMA ---
+        // OYUN DURUMU
+        let gameState = {
+            active: false,
+            phase: 'IDLE', // IDLE, ROLLING, SMOKING
+            rollProgress: 0,
+            inhaling: false,
+            jointCurrentLength: CONFIG.jointLength
+        };
+
+        let rollInterval;
+
+        // --- INIT ---
         function init() {
+            // 1. Sahne
             const container = document.getElementById('webgl-container');
-
             scene = new THREE.Scene();
-            scene.background = new THREE.Color(config.bg);
-            scene.fog = new THREE.FogExp2(config.bg, 0.03);
+            scene.background = new THREE.Color(CONFIG.bgColor);
+            scene.fog = new THREE.FogExp2(CONFIG.bgColor, 0.02);
 
             camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 100);
-            camera.position.set(0, 0, 10);
+            camera.position.set(0, 0, 12);
 
             renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
             renderer.setSize(window.innerWidth, window.innerHeight);
@@ -353,398 +235,422 @@
             renderer.shadowMap.enabled = true;
             container.appendChild(renderer.domElement);
 
-            // Işıklar
-            const ambient = new THREE.AmbientLight(0xffffff, 0.3);
-            scene.add(ambient);
-
-            const spot = new THREE.SpotLight(0x00ff88, 1);
+            // 2. Işıklar
+            const amb = new THREE.AmbientLight(0xffffff, 0.4);
+            scene.add(amb);
+            
+            const spot = new THREE.SpotLight(0x00ff88, 1.5);
             spot.position.set(5, 10, 5);
             spot.castShadow = true;
             scene.add(spot);
 
-            const warmLight = new THREE.PointLight(0xffaa00, 0.5);
-            warmLight.position.set(-5, 2, -5);
-            scene.add(warmLight);
+            const warm = new THREE.PointLight(0xffaa00, 0.5);
+            warm.position.set(-5, 0, 5);
+            scene.add(warm);
 
-            // Nesneler
-            createMainLeaf();
-            createJointSystem();
-            
-            // Eventler
+            // 3. Texture Oluşturucu (Duman için)
+            smokeTexture = createSmokeTexture();
+
+            // 4. Objeleri Yarat
+            createLeaf();
+            createJoint();
+
+            // 5. Event Listeners
             window.addEventListener('resize', onResize);
             window.addEventListener('mousemove', onMouseMove);
             
-            // Oyun Eventleri
-            document.getElementById('start-game-btn').addEventListener('click', startGame);
-            document.getElementById('close-game').addEventListener('click', stopGame);
-            
-            // Sarma Mekaniği
+            // Butonlar
+            document.getElementById('btn-start').addEventListener('click', startGame);
+            document.getElementById('btn-exit').addEventListener('click', stopGame);
+
+            // Sarma (Space Tuşu)
             window.addEventListener('keydown', (e) => {
-                if(gamePhase === 'rolling' && e.code === 'Space') {
-                    rollJoint(true);
-                }
+                if(gameState.phase === 'ROLLING' && e.code === 'Space') startRolling();
             });
             window.addEventListener('keyup', (e) => {
-                if(gamePhase === 'rolling' && e.code === 'Space') {
-                    rollJoint(false);
-                }
+                if(gameState.phase === 'ROLLING' && e.code === 'Space') stopRolling();
             });
 
-            // İçme Mekaniği
+            // İçme (Mouse Click)
             window.addEventListener('mousedown', () => {
-                if(gamePhase === 'smoking') startInhale();
+                if(gameState.phase === 'SMOKING') startInhale();
             });
             window.addEventListener('mouseup', () => {
-                if(gamePhase === 'smoking') stopInhale();
+                if(gameState.phase === 'SMOKING') stopInhale();
             });
-            window.addEventListener('touchstart', () => { if(gamePhase === 'smoking') startInhale(); });
-            window.addEventListener('touchend', () => { if(gamePhase === 'smoking') stopInhale(); });
-
-            // GSAP Scroll
-            setupScroll();
+            // Dokunmatik
+            window.addEventListener('touchstart', (e) => { 
+                if(gameState.phase === 'SMOKING') startInhale(); 
+            });
+            window.addEventListener('touchend', () => { 
+                if(gameState.phase === 'SMOKING') stopInhale(); 
+            });
 
             animate();
         }
 
-        // --- 3D NESNELER ---
-
-        // 1. Prosedürel Kenevir Yaprağı
-        function createMainLeaf() {
-            const shape = new THREE.Shape();
-            // Basitleştirilmiş 7 parçalı yaprak çizimi
-            // Bu kısım normalde SVG import ile yapılır ama burada prosedürel çiziyoruz
+        // --- TEXTURE GENERATOR ---
+        function createSmokeTexture() {
+            const canvas = document.createElement('canvas');
+            canvas.width = 128;
+            canvas.height = 128;
+            const ctx = canvas.getContext('2d');
             
-            const leaflet = (xOff, yOff, scale, rot) => {
-                const s = new THREE.Shape();
-                s.moveTo(0,0);
-                s.bezierCurveTo(0.5, 0.5, 0.8, 2, 0, 4); // Sağ kenar
-                s.bezierCurveTo(-0.8, 2, -0.5, 0.5, 0, 0); // Sol kenar
-                return s;
-            }
+            // Yumuşak radyal gradyan
+            const grad = ctx.createRadialGradient(64,64,0, 64,64,64);
+            grad.addColorStop(0, 'rgba(200,200,200,0.8)'); // Merkez
+            grad.addColorStop(0.4, 'rgba(150,150,150,0.3)');
+            grad.addColorStop(1, 'rgba(255,255,255,0)'); // Kenar
 
-            // Karmaşık bir geometri oluşturmak yerine, 7 ayrı yaprakçığı grup olarak ekleyelim
-            mainLeaf = new THREE.Group();
+            ctx.fillStyle = grad;
+            ctx.fillRect(0,0,128,128);
 
-            const mat = new THREE.MeshStandardMaterial({
-                color: config.leafColor,
-                roughness: 0.7,
-                metalness: 0.1,
-                side: THREE.DoubleSide,
-                emissive: 0x002200
-            });
-
-            const angles = [0, 25, -25, 50, -50, 75, -75];
-            const scales = [1, 0.9, 0.9, 0.7, 0.7, 0.4, 0.4];
-
-            angles.forEach((deg, i) => {
-                const geo = new THREE.ShapeGeometry(leaflet());
-                const mesh = new THREE.Mesh(geo, mat);
-                
-                mesh.scale.set(scales[i], scales[i], scales[i]);
-                mesh.rotation.z = -deg * Math.PI / 180;
-                
-                // Pivot noktasını ayarla (sap kısmı)
-                mesh.position.y = -0.5;
-                
-                mainLeaf.add(mesh);
-            });
-
-            // Yaprak dokusu/damarları için basit wireframe overlay
-            const wireMat = new THREE.MeshBasicMaterial({ color: 0x4caf50, wireframe: true, transparent: true, opacity: 0.1 });
-            angles.forEach((deg, i) => {
-                const geo = new THREE.ShapeGeometry(leaflet());
-                const mesh = new THREE.Mesh(geo, wireMat);
-                mesh.scale.set(scales[i], scales[i], scales[i]);
-                mesh.rotation.z = -deg * Math.PI / 180;
-                mesh.position.y = -0.5;
-                mesh.position.z = 0.01;
-                mainLeaf.add(mesh);
-            });
-
-            scene.add(mainLeaf);
+            const tex = new THREE.CanvasTexture(canvas);
+            return tex;
         }
 
-        // 2. Sigara (Joint) Sistemi
-        function createJointSystem() {
-            jointGroup = new THREE.Group();
+        // --- 3D MODELLER ---
+        function createLeaf() {
+            mainLeafGroup = new THREE.Group();
             
-            // Gövde
-            const geometry = new THREE.CylinderGeometry(0.15, 0.12, 3, 32);
-            const paperMat = new THREE.MeshStandardMaterial({ color: config.jointColor, roughness: 1 });
-            const cylinder = new THREE.Mesh(geometry, paperMat);
-            cylinder.rotation.x = Math.PI / 2; // Yatay yap
-            jointGroup.add(cylinder);
+            // Basit Yaprak Geometrisi (Prosedürel)
+            const shape = new THREE.Shape();
+            shape.moveTo(0,0);
+            shape.bezierCurveTo(0.2, 0.5, 0.2, 1.5, 0, 2.5);
+            shape.bezierCurveTo(-0.2, 1.5, -0.2, 0.5, 0, 0);
 
-            // Kor (Uç kısım)
-            const emberGeo = new THREE.CylinderGeometry(0.15, 0.15, 0.1, 32);
-            const emberMat = new THREE.MeshStandardMaterial({ 
-                color: 0x330000, 
-                emissive: 0x000000, 
-                emissiveIntensity: 0 
+            const geo = new THREE.ShapeGeometry(shape);
+            const mat = new THREE.MeshStandardMaterial({
+                color: CONFIG.leafColor,
+                roughness: 0.6,
+                metalness: 0.1,
+                side: THREE.DoubleSide
+            });
+
+            // 7 Yapraklı yapı
+            const angles = [0, 20, -20, 45, -45, 70, -70];
+            const scales = [1, 0.9, 0.9, 0.75, 0.75, 0.5, 0.5];
+
+            angles.forEach((a, i) => {
+                const leaflet = new THREE.Mesh(geo, mat);
+                leaflet.rotation.z = -a * Math.PI / 180;
+                leaflet.scale.setScalar(scales[i]);
+                leaflet.position.y = -0.5;
+                mainLeafGroup.add(leaflet);
+            });
+
+            scene.add(mainLeafGroup);
+        }
+
+        function createJoint() {
+            jointContainer = new THREE.Group();
+
+            // 1. Filtre (Sabit kısım)
+            const filterGeo = new THREE.CylinderGeometry(0.12, 0.12, 0.8, 32);
+            const filterMat = new THREE.MeshStandardMaterial({ color: 0xd4a063 }); // Kahverengi
+            const filter = new THREE.Mesh(filterGeo, filterMat);
+            filter.position.y = -CONFIG.jointLength / 2 + 0.4;
+            // Filtre jointContainer'a eklenir, hiç kısalmaz
+            jointContainer.add(filter);
+
+            // 2. Tütün Gövdesi (Kısalacak kısım)
+            // Pivot noktasını aşağıya almak için geometriyi translate ediyoruz
+            const bodyGeo = new THREE.CylinderGeometry(0.13, 0.12, 1, 32);
+            bodyGeo.translate(0, 0.5, 0); // Pivot en altta
+            
+            const bodyMat = new THREE.MeshStandardMaterial({ color: 0xffffff, map: null }); // Beyaz kağıt
+            jointBody = new THREE.Mesh(bodyGeo, bodyMat);
+            
+            // Başlangıç boyutu
+            jointBody.scale.y = CONFIG.jointLength - 0.8; // Filtre payını düş
+            jointBody.position.y = -CONFIG.jointLength / 2 + 0.8; // Filtrenin hemen üstü
+            
+            jointContainer.add(jointBody);
+
+            // 3. Kor / Yanma Ucu
+            const emberGeo = new THREE.SphereGeometry(0.14, 16, 16);
+            const emberMat = new THREE.MeshStandardMaterial({
+                color: 0x333333,
+                emissive: 0xff3300,
+                emissiveIntensity: 0
             });
             emberMesh = new THREE.Mesh(emberGeo, emberMat);
-            emberMesh.rotation.x = Math.PI / 2;
-            emberMesh.position.z = 1.5; // Ucuna koy
-            jointGroup.add(emberMesh);
+            // Ember pozisyonu jointBody'nin tepesi olacak
+            emberMesh.position.y = jointBody.scale.y; 
+            
+            // Ember'ı jointBody'nin içine değil, container'a ekleyelim ki scale'den etkilenmesin, biz manuel taşıyacağız
+            jointBody.add(emberMesh); // Aslında child olması daha kolay çünkü scale olunca pozisyonu otomatik kayar.
+            // FAKAT: Mesh scale olunca child'lar da deforme olur (elips olur). 
+            // O yüzden emberMesh'i container'a ekleyip update'de pozisyonunu güncelleyeceğiz.
+            jointContainer.add(emberMesh);
 
-            // Başlangıçta gizle
-            jointGroup.visible = false;
-            jointGroup.position.set(0, -1, 5);
-            jointGroup.rotation.y = Math.PI / 4;
-            scene.add(jointGroup);
+            // Başlangıç konumu
+            jointContainer.visible = false;
+            jointContainer.rotation.z = -Math.PI / 4;
+            scene.add(jointContainer);
         }
 
-        // --- OYUN MANTIĞI ---
+        // --- OYUN FONKSİYONLARI ---
 
         function startGame() {
-            gameActive = true;
-            document.body.style.overflow = 'hidden'; // Scroll'u kapat
-            
-            const overlay = document.getElementById('game-overlay');
-            overlay.style.display = 'flex';
-            
-            // Fade In
-            setTimeout(() => { overlay.style.opacity = 1; }, 10);
+            gameState.active = true;
+            gameState.phase = 'ROLLING';
+            gameState.rollProgress = 0;
+            gameState.jointCurrentLength = CONFIG.jointLength - 0.8; // Sadece tütün kısmı
 
-            // Kamerayı oyuna hazırla
-            gsap.to(camera.position, { z: 6, y: 0, x: 0, duration: 1.5 });
-            gsap.to(mainLeaf.position, { y: 10, duration: 1 }); // Yaprağı yukarı gönder
+            // UI Güncelle
+            document.getElementById('game-hud').style.display = 'flex';
+            document.getElementById('hud-text').innerText = "SARMAK İÇİN BOŞLUK TUŞUNA BASILI TUT";
+            document.getElementById('roll-bar-wrapper').style.display = 'block';
+            document.getElementById('roll-bar-fill').style.width = '0%';
+            document.getElementById('smoke-hint').style.display = 'none';
+            document.getElementById('main-hero').style.opacity = 0;
 
-            startRollingPhase();
+            // Kamera Hareketi
+            gsap.to(camera.position, { z: 8, duration: 1.5 });
+            gsap.to(mainLeafGroup.position, { y: 2, duration: 1 });
         }
 
         function stopGame() {
-            gameActive = false;
-            gamePhase = 'idle';
-            document.body.style.overflow = 'auto';
+            gameState.active = false;
+            gameState.phase = 'IDLE';
+            document.getElementById('game-hud').style.display = 'none';
+            document.getElementById('main-hero').style.opacity = 1;
             
-            const overlay = document.getElementById('game-overlay');
-            overlay.style.opacity = 0;
-            setTimeout(() => { overlay.style.display = 'none'; }, 1000);
-
-            // Nesneleri resetle
-            jointGroup.visible = false;
-            gsap.to(camera.position, { z: 10, y: 0, duration: 1.5 });
-            gsap.to(mainLeaf.position, { y: 0, duration: 1 });
+            // Reset
+            jointContainer.visible = false;
+            gsap.to(camera.position, { z: 12, y: 0, duration: 1 });
+            gsap.to(mainLeafGroup.position, { y: 0, duration: 1 });
         }
 
-        // FAZ 1: Sarma
-        function startRollingPhase() {
-            gamePhase = 'rolling';
-            document.getElementById('game-phase-text').innerText = "KARIŞIM HAZIRLANIYOR";
-            document.getElementById('roll-ui').style.display = 'block';
-            document.getElementById('roll-hint').style.display = 'block';
-            document.getElementById('smoke-ui').style.display = 'none';
-            rollProgress = 0;
-            updateRollBar();
-        }
+        // SARMA
+        function startRolling() {
+            if(rollInterval) return;
+            rollInterval = setInterval(() => {
+                gameState.rollProgress += 1.5;
+                document.getElementById('roll-bar-fill').style.width = gameState.rollProgress + '%';
 
-        let rollInterval;
-        function rollJoint(isHolding) {
-            if(isHolding) {
-                if(!rollInterval) {
-                    rollInterval = setInterval(() => {
-                        rollProgress += 1;
-                        updateRollBar();
-                        if(rollProgress >= 100) {
-                            clearInterval(rollInterval);
-                            finishRolling();
-                        }
-                    }, 20);
+                if(gameState.rollProgress >= 100) {
+                    clearInterval(rollInterval);
+                    finishRolling();
                 }
-            } else {
-                clearInterval(rollInterval);
-                rollInterval = null;
-            }
+            }, 30);
         }
 
-        function updateRollBar() {
-            document.getElementById('roll-bar').style.width = rollProgress + '%';
+        function stopRolling() {
+            clearInterval(rollInterval);
+            rollInterval = null;
         }
 
         function finishRolling() {
-            document.getElementById('game-phase-text').innerText = "SARILDI. HAZIR.";
-            document.getElementById('roll-ui').style.display = 'none';
-            document.getElementById('roll-hint').style.display = 'none';
+            gameState.phase = 'SMOKING';
             
-            // Geçiş Animasyonu
+            // HATA DÜZELTME: UI elemanlarını kesin olarak gizle
+            const hudText = document.getElementById('hud-text');
+            const rollWrapper = document.getElementById('roll-bar-wrapper');
+            const smokeHint = document.getElementById('smoke-hint');
+
+            hudText.innerText = "HAZIR.";
+            rollWrapper.style.display = 'none'; // Kritik düzeltme
+            
             setTimeout(() => {
-                startSmokingPhase();
+                hudText.style.display = 'none';
+                smokeHint.style.display = 'block';
+                
+                // Sigarayı getir
+                jointContainer.visible = true;
+                jointContainer.scale.set(0,0,0);
+                // Sigara reset
+                jointBody.scale.y = CONFIG.jointLength - 0.8;
+                emberMesh.position.y = jointBody.position.y + jointBody.scale.y;
+
+                gsap.to(jointContainer.scale, { x:1, y:1, z:1, duration: 1, ease: "back.out(1.7)" });
             }, 1000);
         }
 
-        // FAZ 2: İçme
-        function startSmokingPhase() {
-            gamePhase = 'smoking';
-            document.getElementById('game-phase-text').style.display = 'none';
-            document.getElementById('smoke-ui').style.display = 'block';
-
-            // Sigarayı sahneye getir
-            jointGroup.visible = true;
-            jointGroup.scale.set(0,0,0);
-            gsap.to(jointGroup.scale, { x:1, y:1, z:1, duration: 1, ease: "elastic.out(1, 0.7)" });
-        }
-
+        // İÇME & YANMA
         function startInhale() {
-            isInhaling = true;
-            // Ucu kızart
-            gsap.to(emberMesh.material.emissive, { r: 1, g: 0.2, b: 0, duration: 2 }); // Kırmızı
-            gsap.to(emberMesh.material, { emissiveIntensity: 2, duration: 2 });
+            if(gameState.phase !== 'SMOKING') return;
+            gameState.inhaling = true;
+
+            // 1. Kamera Zoom (Nefes alma hissi)
+            gsap.to(camera.position, { z: 7, duration: 0.5 });
             
-            // Hafif zoom
-            gsap.to(camera.position, { z: 5, duration: 2 });
-            
-            // Sigara ucu hafifçe geriye gitsin (yanıyor efekti)
-            gsap.to(jointGroup.position, { z: 5.2, duration: 0.5, yoyo: true, repeat: 1 });
+            // 2. Kor Parlaması
+            gsap.to(emberMesh.material, { emissiveIntensity: 3, duration: 0.5 });
+            gsap.to(emberMesh.scale, { x: 1.2, y: 1.2, z: 1.2, duration: 0.2 });
+
+            // 3. Sigarayı ağza yaklaştır
+            gsap.to(jointContainer.position, { y: -1, duration: 0.5 });
         }
 
         function stopInhale() {
-            if(!isInhaling) return;
-            isInhaling = false;
+            if(gameState.phase !== 'SMOKING') return;
+            gameState.inhaling = false;
 
-            // Ucu söndür (yavaşça)
-            gsap.to(emberMesh.material.emissive, { r: 0.2, g: 0, b: 0, duration: 1 });
-            gsap.to(emberMesh.material, { emissiveIntensity: 0.2, duration: 1 });
-            gsap.to(camera.position, { z: 6, duration: 1 });
+            // 1. Kamera Geri
+            gsap.to(camera.position, { z: 8, duration: 1 });
 
-            // BÜYÜK DUMAN ÜFLEME
-            emitSmoke(30); // 30 parçacık fırlat
+            // 2. Kor Sönmesi
+            gsap.to(emberMesh.material, { emissiveIntensity: 0.2, duration: 0.5 });
+            gsap.to(emberMesh.scale, { x: 1, y: 1, z: 1, duration: 0.5 });
+
+            // 3. Sigara normal konuma
+            gsap.to(jointContainer.position, { y: 0, duration: 1 });
+
+            // 4. DUMAN ÜFLE (Ağızdan/Ekran altından)
+            exhaleSmoke();
         }
 
-        // --- PARTICLE SYSTEM (DUMAN) ---
-        function createSmokeParticle(count) {
-            // Basit bir sprite veya soft circle kullanılabilir, burada şeffaf mesh kullanacağız
-            const geo = new THREE.SphereGeometry(0.1, 8, 8);
-            const mat = new THREE.MeshBasicMaterial({
-                color: config.smokeColor,
-                transparent: true,
-                opacity: 0.4,
-                depthWrite: false
-            });
+        // SÜREKLİ YANMA MANTIĞI
+        function updateBurn() {
+            if(gameState.inhaling && gameState.jointCurrentLength > 0.1) {
+                // Kısalma
+                gameState.jointCurrentLength -= CONFIG.burnSpeed;
+                jointBody.scale.y = gameState.jointCurrentLength;
+                
+                // Ember'ı yeni ucuna taşı
+                // JointBody.position.y (alt nokta) + scale.y (yükseklik)
+                emberMesh.position.y = jointBody.position.y + gameState.jointCurrentLength;
 
-            const mesh = new THREE.Mesh(geo, mat);
-            
-            // Başlangıç Pozisyonu (Sigaranın ucu)
-            // Joint transformunu hesaba katmak lazım ama basitleştirmek için:
-            // Joint pozisyonu (0, -1, 5) + Ucu (z + 1.5) -> (0, -1, 6.5)
-            // Kameraya biraz yakın olsun
-            mesh.position.set(
-                (Math.random() - 0.5) * 0.5, 
-                -1 + (Math.random() * 0.5), 
-                6
-            );
+                // Ufak duman (sigara ucundan)
+                if(Math.random() > 0.8) spawnTipSmoke();
 
-            // Hız vektörü
-            mesh.userData = {
-                velocity: new THREE.Vector3(
-                    (Math.random() - 0.5) * 0.05, // X yayılımı
-                    0.05 + Math.random() * 0.05,  // Y yükselme
-                    0.05 // Z kameraya doğru
-                ),
-                life: 1.0 // Ömür
-            };
-
-            scene.add(mesh);
-            particles.push(mesh);
-        }
-
-        function emitSmoke(amount) {
-            for(let i=0; i<amount; i++) {
-                createSmokeParticle();
+                // Eğer biterse
+                if(gameState.jointCurrentLength <= 0.2) {
+                    stopInhale();
+                    document.getElementById('hud-text').style.display = 'block';
+                    document.getElementById('hud-text').innerText = "BİTTİ.";
+                    document.getElementById('smoke-hint').style.display = 'none';
+                    setTimeout(stopGame, 2000);
+                }
             }
         }
 
-        function updateParticles() {
-            for(let i = particles.length - 1; i >= 0; i--) {
+        // --- PARTICLE SYSTEM (SPRITE TABANLI) ---
+        class SmokeParticle {
+            constructor(isExhale = false) {
+                const mat = new THREE.SpriteMaterial({ 
+                    map: smokeTexture, 
+                    color: 0xeeeeee, 
+                    transparent: true, 
+                    opacity: 0,
+                    rotation: Math.random() * Math.PI 
+                });
+                this.sprite = new THREE.Sprite(mat);
+
+                if(isExhale) {
+                    // Ekranın altından (ağızdan) çıkar
+                    this.sprite.position.set(
+                        (Math.random() - 0.5) * 2, // Geniş yayılım
+                        -4, // Ekran altı
+                        5 // Kameraya yakın
+                    );
+                    this.velocity = new THREE.Vector3(
+                        (Math.random() - 0.5) * 0.05,
+                        0.05 + Math.random() * 0.1, // Hızlı yükseliş
+                        0.02
+                    );
+                    this.life = 1.0;
+                    this.growth = 0.05;
+                    this.maxOpacity = 0.6;
+                    this.sprite.scale.set(1, 1, 1);
+                } else {
+                    // Sigara ucundan çıkar
+                    // Joint'in dünya koordinatını bulmak zor olabilir, basitçe container dönüşümlerini alalım
+                    const tipPos = new THREE.Vector3();
+                    emberMesh.getWorldPosition(tipPos);
+                    
+                    this.sprite.position.copy(tipPos);
+                    this.sprite.position.x += (Math.random()-0.5)*0.2;
+                    this.sprite.position.y += (Math.random()-0.5)*0.2;
+
+                    this.velocity = new THREE.Vector3(
+                        (Math.random() - 0.5) * 0.01,
+                        0.02,
+                        0
+                    );
+                    this.life = 1.0;
+                    this.growth = 0.02;
+                    this.maxOpacity = 0.2; // Daha silik
+                    this.sprite.scale.set(0.3, 0.3, 0.3);
+                }
+
+                scene.add(this.sprite);
+            }
+
+            update() {
+                this.sprite.position.add(this.velocity);
+                this.sprite.rotation += 0.01;
+                this.sprite.scale.addScalar(this.growth);
+                
+                // Fade in / Fade out
+                this.life -= 0.01;
+                
+                // Opaklık hesabı (önce art, sonra azal)
+                if(this.life > 0.8) {
+                    this.sprite.material.opacity = (1 - this.life) * 5 * this.maxOpacity;
+                } else {
+                    this.sprite.material.opacity = this.life * this.maxOpacity;
+                }
+
+                return this.life > 0;
+            }
+
+            dispose() {
+                scene.remove(this.sprite);
+                this.sprite.material.dispose();
+            }
+        }
+
+        function exhaleSmoke() {
+            // Bir anda 30 tane parçacık fırlat
+            for(let i=0; i<30; i++) {
+                setTimeout(() => {
+                    particles.push(new SmokeParticle(true));
+                }, i * 10);
+            }
+        }
+
+        function spawnTipSmoke() {
+            particles.push(new SmokeParticle(false));
+        }
+
+        // --- RENDER LOOP ---
+        function animate() {
+            requestAnimationFrame(animate);
+            
+            // 1. Yanma Mantığı
+            updateBurn();
+
+            // 2. Duman Parçacıkları Güncelleme
+            for (let i = particles.length - 1; i >= 0; i--) {
                 const p = particles[i];
-                
-                // Pozisyon güncelle
-                p.position.add(p.userData.velocity);
-                
-                // Büyüme (Duman genişler)
-                const scale = 1 + (1.0 - p.userData.life) * 5;
-                p.scale.set(scale, scale, scale);
-
-                // Ömür azalt
-                p.userData.life -= 0.01;
-                p.material.opacity = p.userData.life * 0.3;
-
-                // Rotasyon (girdap)
-                p.rotation.z += 0.01;
-
-                if(p.userData.life <= 0) {
-                    scene.remove(p);
+                const alive = p.update();
+                if (!alive) {
+                    p.dispose();
                     particles.splice(i, 1);
                 }
             }
-        }
 
-        // --- ANIMASYON & RENDER ---
-        function animate() {
-            requestAnimationFrame(animate);
-
-            const time = performance.now() * 0.001;
-
-            // Yaprak Animasyonu (Idle)
-            if(!gameActive) {
-                mainLeaf.rotation.z = Math.sin(time * 0.5) * 0.1;
-                mainLeaf.rotation.y = Math.cos(time * 0.3) * 0.2 + (mouse.x * 0.5);
-                mainLeaf.rotation.x = (mouse.y * 0.5);
-                
-                // Yaprak parçaları dalgalansın
-                mainLeaf.children.forEach((child, i) => {
-                     // child.rotation.z += Math.sin(time * 2 + i) * 0.001; 
-                });
+            // 3. Yaprak Hareketi (Idle)
+            if(!gameState.active) {
+                const time = performance.now() * 0.001;
+                mainLeafGroup.rotation.z = Math.sin(time) * 0.05;
+                mainLeafGroup.rotation.y = mouse.x * 0.5;
+                mainLeafGroup.rotation.x = mouse.y * 0.5;
+            } else if (gameState.phase === 'SMOKING') {
+                // Sigara fareyi takip etsin
+                jointContainer.rotation.z = -Math.PI / 4 + (-mouse.x * 0.2);
+                jointContainer.rotation.x = -mouse.y * 0.2;
             }
 
-            // Sigara Animasyonu
-            if(gamePhase === 'smoking') {
-                // Sigara fareyi takip etsin (hafifçe)
-                jointGroup.rotation.z = -mouse.x * 0.5;
-                jointGroup.rotation.x = (Math.PI / 2) - (mouse.y * 0.5);
-                
-                // Sürekli hafif duman (yanıyor hissi)
-                if(Math.random() > 0.9) emitSmoke(1);
-            }
-
-            updateParticles();
             renderer.render(scene, camera);
         }
 
-        function setupScroll() {
-            gsap.registerPlugin(ScrollTrigger);
-            
-            gsap.utils.toArray('.card').forEach(card => {
-                gsap.to(card, {
-                    opacity: 1,
-                    y: 0,
-                    duration: 1,
-                    scrollTrigger: {
-                        trigger: card,
-                        start: "top 80%",
-                    }
-                });
-            });
-
-            // Hero yaprağı scroll ile küçülüp yana gitsin
-            ScrollTrigger.create({
-                trigger: "body",
-                start: "top top",
-                end: "bottom bottom",
-                onUpdate: (self) => {
-                    if(!gameActive) {
-                        const p = self.progress;
-                        mainLeaf.position.x = -p * 5;
-                        mainLeaf.scale.set(1 - p*0.5, 1 - p*0.5, 1 - p*0.5);
-                        mainLeaf.rotation.z = p * Math.PI;
-                    }
-                }
-            });
-        }
-
-        function onMouseMove(event) {
-            mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
-            mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
+        function onMouseMove(e) {
+            mouse.x = (e.clientX / window.innerWidth) * 2 - 1;
+            mouse.y = -(e.clientY / window.innerHeight) * 2 + 1;
         }
 
         function onResize() {
