@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>CYBER BREACH: OVERLORD</title>
+    <title>CYBER BREACH: HIGH YIELD</title>
     <style>
         /* --- CORE VISUALS --- */
         :root {
@@ -162,7 +162,7 @@
             <h2 style="margin-top: 15px;">SİSTEM GÜNLÜĞÜ</h2>
             <div id="console-log">
                 <div class="log-entry">> Sistem başlatıldı...</div>
-                <div class="log-entry">> Proxy sunucularına bağlanılıyor...</div>
+                <div class="log-entry">> Kripto Ağına Bağlanıldı (YÜKSEK GELİR MODU)</div>
             </div>
         </div>
 
@@ -301,39 +301,36 @@
             osc.start(now); osc.stop(now + 0.15);
         }
 
-        /* --- OYUN VERİSİ & AYARLAR --- */
+        /* --- OYUN VERİSİ (GÜNCELLENMİŞ EKONOMİ) --- */
         const TARGETS = [
-            { id: 0, name: "Ev Bilgisayarı", security: 1.0, reward: 10, reqLvl: 1 },
-            { id: 1, name: "Şirket Wi-Fi", security: 1.5, reward: 25, reqLvl: 2 },
-            { id: 2, name: "Banka Sunucusu", security: 2.2, reward: 60, reqLvl: 3 },
-            { id: 3, name: "Devlet Veritabanı", security: 3.0, reward: 150, reqLvl: 4 },
-            { id: 4, name: "Askeri Uydu", security: 4.5, reward: 400, reqLvl: 5 },
-            { id: 5, name: "Yapay Zeka Çekirdeği", security: 6.0, reward: 1000, reqLvl: 6 },
-            { id: 6, name: "BLOCKCHAIN ANA AĞI", security: 8.0, reward: 5000, reqLvl: 7 }
+            // REWARD: Ödüller 5x Arttırıldı
+            { id: 0, name: "Ev Bilgisayarı", security: 1.0, reward: 50, reqLvl: 1 }, 
+            { id: 1, name: "Şirket Wi-Fi", security: 1.5, reward: 150, reqLvl: 2 },
+            { id: 2, name: "Banka Sunucusu", security: 2.2, reward: 300, reqLvl: 3 },
+            { id: 3, name: "Devlet Veritabanı", security: 3.0, reward: 800, reqLvl: 4 },
+            { id: 4, name: "Askeri Uydu", security: 4.5, reward: 2000, reqLvl: 5 },
+            { id: 5, name: "Yapay Zeka Çekirdeği", security: 6.0, reward: 5000, reqLvl: 6 },
+            { id: 6, name: "BLOCKCHAIN ANA AĞI", security: 8.0, reward: 25000, reqLvl: 7 }
         ];
 
         class Game {
             constructor() {
-                // Kayıtlı veriyi yükle veya varsayılanı kullan
-                const saved = JSON.parse(localStorage.getItem('cyberOverlordSave')) || {};
+                const saved = JSON.parse(localStorage.getItem('cyberOverlordHighYield')) || {};
                 
                 this.money = saved.money || 0;
                 this.data = saved.data || 0;
                 this.level = saved.level || 1;
                 
-                // İstatistikler
                 this.stats = {
-                    clickPower: saved.stats?.clickPower || 1,   // Tık başına güç
-                    riskDefense: saved.stats?.riskDefense || 1.0, // Risk çarpanı (düşük iyi)
-                    riskCooling: saved.stats?.riskCooling || 2.0, // Saniyede risk düşüşü
-                    autoHack: saved.stats?.autoHack || 0,       // Botnet gücü
-                    passiveIncome: saved.stats?.passiveIncome || 0 // Mining geliri
+                    clickPower: saved.stats?.clickPower || 1, 
+                    riskDefense: saved.stats?.riskDefense || 1.0, 
+                    riskCooling: saved.stats?.riskCooling || 2.0, 
+                    autoHack: saved.stats?.autoHack || 0,       
+                    passiveIncome: saved.stats?.passiveIncome || 0 
                 };
 
-                // Market Seviyeleri (Fiyat hesaplama için)
                 this.upgrades = saved.upgrades || { cpu:1, bot:0, mine:0, farm:0, proxy:0, cool:0 };
 
-                // Geçici Değişkenler
                 this.currentTargetId = 0;
                 this.breach = 0;
                 this.risk = 0;
@@ -345,7 +342,6 @@
             }
 
             initUI() {
-                // Hedef Listesini Oluştur
                 const list = document.getElementById('target-list');
                 list.innerHTML = '';
                 TARGETS.forEach(t => {
@@ -358,12 +354,12 @@
                     el.innerHTML = `
                         <div class="t-name">${t.name}</div>
                         <div class="t-diff">Gereken Seviye: ${t.reqLvl}</div>
-                        <div class="t-security">Güvenlik: x${t.security}</div>
+                        <div class="t-security">Güvenlik: x${t.security} | Ödül: ${t.reward} ₿</div>
                     `;
                     list.appendChild(el);
                 });
                 
-                this.log("Sistem yüklendi. Hoşgeldiniz, Operatör.");
+                this.log("Yüksek gelir protokolleri aktif.");
                 this.updateCosts();
             }
 
@@ -377,31 +373,24 @@
                 this.risk = 0;
                 this.isLockout = false;
                 
-                // UI Güncelle
                 document.querySelectorAll('.target-card').forEach(el => el.classList.remove('active'));
                 document.getElementById('target-list').children[id].classList.add('active');
                 document.getElementById('current-target-name').innerText = TARGETS[id].name;
-                this.log(`Hedef değiştirildi: ${TARGETS[id].name}`);
+                this.log(`Hedef: ${TARGETS[id].name}`);
             }
 
             manualHack() {
-                if (this.isLockout) {
-                    sfx('error'); return;
-                }
+                if (this.isLockout) { sfx('error'); return; }
 
                 const target = TARGETS[this.currentTargetId];
                 
-                // 1. Sızma İlerlemesi
-                // Formül: (Tık Gücü) / (Zorluk Çarpanı biraz yumuşatılmış)
-                let breachGain = (this.stats.clickPower * 2) + Math.random();
+                // GÜÇLENDİRİLMİŞ TIKLAMA (2x yerine 5x)
+                let breachGain = (this.stats.clickPower * 5) + Math.random();
                 this.breach += breachGain;
 
-                // 2. Risk Artışı
-                // Formül: (Hedef Güvenliği * 5) / (Defans Gücü)
                 let riskGain = (target.security * 4) / this.stats.riskDefense;
                 this.risk += riskGain;
 
-                // Efektler
                 sfx('click');
                 this.createFloatText(event.clientX, event.clientY, `+${Math.floor(breachGain)}`, '#00ff66');
                 
@@ -413,66 +402,58 @@
                     this.lockoutTimer -= 0.1;
                     if (this.lockoutTimer <= 0) {
                         this.isLockout = false;
-                        this.risk = 50; // Ceza bitince %50 riskle başla
+                        this.risk = 50; 
                         document.getElementById('hack-btn').classList.remove('lockout');
-                        this.log("Sistem kilidi açıldı. Dikkatli ol.");
+                        this.log("Kilit açıldı.");
                     }
-                    // Kilitliyken risk düşmez
                 } else {
-                    // Risk Soğutma
                     if (this.risk > 0) {
                         this.risk -= (this.stats.riskCooling * 0.1);
                         if (this.risk < 0) this.risk = 0;
                     }
 
-                    // Botnet (Otomatik Hack)
                     if (this.stats.autoHack > 0) {
                         this.breach += (this.stats.autoHack * 0.1);
-                        // Botnet çok az risk üretir (%5 oranında)
                         this.risk += (TARGETS[this.currentTargetId].security * 0.1) / this.stats.riskDefense;
                         this.checkStatus();
                     }
                 }
 
-                // Pasif Gelir (Mining) - Saniyede bir yerine her frame'de ufak ufak
                 if (this.stats.passiveIncome > 0) {
                     this.money += (this.stats.passiveIncome * 0.1);
                 }
 
                 this.updateUI();
-                
-                // 100ms döngü için 10'a bölüyoruz değerleri
             }
 
             checkStatus() {
-                // Başarılı Hack
                 if (this.breach >= 100) {
                     this.breach = 0;
                     const t = TARGETS[this.currentTargetId];
-                    const reward = Math.floor(t.reward * (1 + Math.random()*0.5)); // %50 varyasyon
+                    // %20 Bonus Şans
+                    const bonus = Math.random() > 0.8 ? 1.5 : 1.0;
+                    const reward = Math.floor(t.reward * bonus); 
                     
                     this.money += reward;
-                    this.data += 1; // Veri puanı kazan
+                    this.data += 1; 
                     
                     sfx('money');
-                    this.log(`SIZMA BAŞARILI: ${reward} ₿ kazanıldı.`, "gain");
+                    this.log(`SIZMA BAŞARILI: ${reward} ₿ alındı.`, "gain");
                     
-                    // Seviye Atlama Kontrolü (Basitçe 20 veri = 1 seviye)
-                    if (this.data >= this.level * 50) {
+                    if (this.data >= this.level * 30) { // Seviye atlamak daha kolay (50 yerine 30 data)
                         this.level++;
                         this.log(`SEVİYE ATLADINIZ! YENİ SEVİYE: ${this.level}`, "gain");
-                        this.initUI(); // Hedef listesini güncelle
+                        this.initUI(); 
                     }
                 }
 
-                // Risk Doldu -> Kilitlenme
                 if (this.risk >= 100) {
                     this.risk = 100;
                     this.isLockout = true;
-                    this.lockoutTimer = 5; // 5 saniye ceza
+                    this.lockoutTimer = 4; // Ceza süresi kısaltıldı (5sn -> 4sn)
                     document.getElementById('hack-btn').classList.add('lockout');
                     sfx('error');
-                    this.log("TESPİT EDİLDİNİZ! BAĞLANTI KESİLDİ.", "warn");
+                    this.log("TESPİT EDİLDİNİZ!", "warn");
                 }
             }
 
@@ -485,13 +466,13 @@
                     this.upgrades[type]++;
                     sfx('buy');
 
-                    // Özellikleri Uygula
-                    if (type === 'cpu') this.stats.clickPower += 0.5;
-                    if (type === 'bot') this.stats.autoHack += 2;
-                    if (type === 'mine') this.stats.passiveIncome += 5;
-                    if (type === 'farm') this.stats.passiveIncome += 40;
-                    if (type === 'proxy') this.stats.riskDefense += 0.2;
-                    if (type === 'cool') this.stats.riskCooling += 0.5;
+                    // GÜÇLENDİRİLMİŞ YÜKSELTMELER
+                    if (type === 'cpu') this.stats.clickPower += 1; // 0.5 yerine 1
+                    if (type === 'bot') this.stats.autoHack += 5; // 2 yerine 5
+                    if (type === 'mine') this.stats.passiveIncome += 25; // 5 yerine 25 (Çok daha güçlü)
+                    if (type === 'farm') this.stats.passiveIncome += 250; // 40 yerine 250 (Devasa güç)
+                    if (type === 'proxy') this.stats.riskDefense += 0.3;
+                    if (type === 'cool') this.stats.riskCooling += 0.8;
 
                     this.updateCosts();
                     this.saveGame();
@@ -522,20 +503,17 @@
             }
 
             updateUI() {
-                // Değerler
                 document.getElementById('money-val').innerText = Math.floor(this.money).toLocaleString() + ' ₿';
                 document.getElementById('data-val').innerText = this.data + ' TB';
                 document.getElementById('player-lvl').innerText = this.level;
                 document.getElementById('gps-display').innerText = this.stats.passiveIncome.toFixed(1) + ' ₿/sn';
 
-                // Barlar
                 document.getElementById('breach-fill').style.width = Math.min(100, this.breach) + '%';
                 document.getElementById('breach-pct').innerText = Math.floor(this.breach);
 
                 document.getElementById('risk-fill').style.width = Math.min(100, this.risk) + '%';
                 document.getElementById('risk-pct').innerText = Math.floor(this.risk);
                 
-                // Market Butonları (Aktif/Pasif)
                 const costs = this.getCosts();
                 const checkBtn = (id, cost) => {
                     const btn = document.getElementById(id);
@@ -583,12 +561,12 @@
                     stats: this.stats,
                     upgrades: this.upgrades
                 };
-                localStorage.setItem('cyberOverlordSave', JSON.stringify(data));
+                localStorage.setItem('cyberOverlordHighYield', JSON.stringify(data));
             }
 
             startGameLoop() {
-                setInterval(() => this.gameLoop(), 100); // Saniyede 10 kare mantık döngüsü
-                setInterval(() => this.saveGame(), 10000); // 10 saniyede bir oto-save
+                setInterval(() => this.gameLoop(), 100); 
+                setInterval(() => this.saveGame(), 10000);
             }
         }
 
