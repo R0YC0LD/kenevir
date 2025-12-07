@@ -3,761 +3,641 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <title>SATIVA UNIVERSE | MEGA SIMULATION</title>
+    <title>SATIVA UNIVERSE | STABLE MEGA EDITION</title>
     
     <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link href="https://fonts.googleapis.com/css2?family=Audiowide&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Black+Ops+One&family=Roboto+Mono:wght@400;700&display=swap" rel="stylesheet">
 
     <style>
         :root {
             --primary: #00ff88;
-            --secondary: #00f7ff;
-            --accent: #ff0055;
-            --dark: #050505;
-            --glass: rgba(10, 20, 10, 0.6);
+            --secondary: #00aaff;
+            --danger: #ff3300;
+            --bg: #050505;
         }
 
-        * { margin: 0; padding: 0; box-sizing: border-box; user-select: none; cursor: crosshair; }
+        * { margin: 0; padding: 0; box-sizing: border-box; user-select: none; -webkit-user-drag: none; cursor: crosshair; }
 
         body {
-            background: var(--dark);
+            background-color: var(--bg);
             color: white;
-            font-family: 'Share Tech Mono', monospace;
+            font-family: 'Roboto Mono', monospace;
             overflow: hidden;
             width: 100vw; height: 100vh;
         }
 
-        #canvas-container { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 1; }
+        #webgl-container { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 1; }
 
         /* UI KATMANI */
         #ui-layer {
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 100;
-            pointer-events: none; /* Tıklamalar arkaya geçsin */
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 10;
+            pointer-events: none;
             display: flex; flex-direction: column; justify-content: space-between; padding: 20px;
         }
 
-        .hud-element { pointer-events: auto; }
+        .interactive { pointer-events: auto; }
 
         /* HEADER */
         header {
-            display: flex; justify-content: space-between; align-items: center;
+            display: flex; justify-content: space-between; align-items: flex-start;
             text-shadow: 0 0 10px var(--primary);
         }
-        h1 { font-family: 'Audiowide', cursive; font-size: 2rem; color: var(--primary); letter-spacing: 2px; }
-        .stats { display: flex; gap: 20px; font-size: 0.9rem; color: var(--secondary); }
+        h1 {
+            font-family: 'Black Ops One', cursive; font-size: 3rem; color: transparent;
+            -webkit-text-stroke: 1px var(--primary); letter-spacing: 5px;
+        }
+        .status-box {
+            text-align: right;
+            border: 1px solid var(--primary); padding: 10px;
+            background: rgba(0, 255, 136, 0.1);
+        }
+
+        /* GÖREV ÇUBUĞU */
+        #task-bar {
+            position: absolute; bottom: 15%; left: 50%; transform: translateX(-50%);
+            text-align: center; width: 80%;
+        }
+        .task-text {
+            font-size: 1.5rem; background: rgba(0,0,0,0.8); padding: 15px 30px;
+            border: 1px solid var(--secondary); border-radius: 5px; display: inline-block;
+            box-shadow: 0 0 20px rgba(0, 170, 255, 0.3); animation: pulse 2s infinite;
+        }
+        .key { color: var(--primary); font-weight: bold; border: 1px solid var(--primary); padding: 0 10px; margin: 0 5px; }
 
         /* SEÇİM EKRANI */
-        #selection-screen {
+        #intro-screen {
             position: absolute; top:0; left:0; width:100%; height:100%;
-            background: rgba(0,0,0,0.9); z-index: 200;
+            background: rgba(5,5,5,0.95); z-index: 100;
             display: flex; flex-direction: column; justify-content: center; align-items: center;
         }
+        .card-container { display: flex; gap: 30px; margin-top: 50px; }
         .strain-card {
-            background: rgba(255,255,255,0.05); border: 1px solid var(--primary);
-            padding: 20px 40px; margin: 10px; cursor: pointer;
-            transition: 0.3s; text-align: center; width: 300px;
+            width: 250px; height: 350px; background: rgba(255,255,255,0.05);
+            border: 2px solid #333; padding: 20px; cursor: pointer;
+            transition: 0.3s; display: flex; flex-direction: column; justify-content: center; align-items: center;
+            text-align: center;
         }
-        .strain-card:hover { background: var(--primary); color: black; transform: scale(1.05); box-shadow: 0 0 30px var(--primary); }
-        .strain-title { font-family: 'Audiowide'; font-size: 1.5rem; margin-bottom: 5px; }
-        .strain-desc { font-size: 0.8rem; opacity: 0.7; }
-
-        /* AKSİYON GÖSTERGELERİ */
-        #action-prompt {
-            position: absolute; bottom: 20%; left: 50%; transform: translateX(-50%);
-            text-align: center; width: 100%; pointer-events: none;
-        }
-        .prompt-box {
-            display: inline-block; background: var(--glass); border: 1px solid var(--secondary);
-            padding: 15px 30px; border-radius: 4px; backdrop-filter: blur(5px);
-            animation: float 2s infinite ease-in-out;
-        }
-        .key { color: var(--primary); font-weight: bold; border: 1px solid var(--primary); padding: 2px 8px; margin: 0 5px; }
+        .strain-card:hover { border-color: var(--primary); background: rgba(0, 255, 136, 0.1); transform: translateY(-10px); }
         
-        /* HIGH METER */
-        #high-meter-container {
-            position: absolute; right: 30px; top: 50%; transform: translateY(-50%);
-            width: 10px; height: 300px; background: #222; border: 1px solid #555;
-            display: none;
+        /* PROGRESS BAR */
+        #progress-container {
+            position: absolute; bottom: 5%; left: 0; width: 100%; height: 5px; background: #333;
         }
-        #high-meter-fill {
-            width: 100%; height: 0%; background: linear-gradient(to top, var(--primary), var(--accent));
-            position: absolute; bottom: 0; transition: height 0.5s;
-            box-shadow: 0 0 15px var(--primary);
-        }
+        #progress-fill { width: 0%; height: 100%; background: var(--primary); transition: width 0.1s; box-shadow: 0 0 10px var(--primary); }
 
-        /* YÜKLENİYOR */
+        @keyframes pulse { 0% { opacity: 0.8; transform: scale(1); } 50% { opacity: 1; transform: scale(1.02); } 100% { opacity: 0.8; transform: scale(1); } }
+
+        /* KÜTÜPHANE YÜKLEME EKRANI */
         #loader {
             position: fixed; top:0; left:0; width:100%; height:100%; background:black;
-            z-index: 999; display: flex; justify-content: center; align-items: center;
-            color: var(--primary); font-family: 'Audiowide'; font-size: 1.5rem;
+            z-index: 999; display: flex; justify-content: center; align-items: center; color: var(--primary);
+            font-family: 'Black Ops One'; font-size: 2rem;
         }
-
-        @keyframes float { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-10px); } }
-        .glitch { animation: glitch 1s infinite; }
-        @keyframes glitch { 0% { opacity: 1; } 50% { opacity: 0.8; transform: skewX(2deg); } 100% { opacity: 1; } }
-
     </style>
 </head>
 <body>
 
-    <div id="loader">SİSTEM BAŞLATILIYOR... %0</div>
-
-    <div id="canvas-container"></div>
+    <div id="loader">MOTOR BAŞLATILIYOR...</div>
+    <div id="webgl-container"></div>
 
     <div id="ui-layer">
         <header>
-            <h1>SATIVA<span style="color:white; font-size:0.5em;">_OS v9.0</span></h1>
-            <div class="stats">
-                <div id="fps-counter">FPS: 60</div>
-                <div id="state-display">DURUM: BEKLEMEDE</div>
+            <h1>SATIVA<br><span style="font-size:1.5rem; color:white; -webkit-text-stroke:0;">UNIVERSE</span></h1>
+            <div class="status-box">
+                <div id="phase-display">BEKLEMEDE</div>
+                <div id="fps-display">FPS: 60</div>
             </div>
         </header>
 
-        <div id="high-meter-container">
-            <div id="high-meter-fill"></div>
-        </div>
-
-        <div id="action-prompt" style="display:none;">
-            <div class="prompt-box" id="prompt-text">
-                TALİMATLAR BURADA GÖRÜNECEK
+        <div id="intro-screen" class="interactive">
+            <h2 style="font-family:'Black Ops One'; font-size:3rem;">GENETİK SEÇİMİ</h2>
+            <p style="color:#aaa;">SİMÜLASYONA BAŞLAMAK İÇİN TÜR SEÇİN</p>
+            
+            <div class="card-container">
+                <div class="strain-card" onclick="startSim('INDICA')">
+                    <h3 style="color:#a0f; font-size:2rem; margin-bottom:10px;">PURPLE KUSH</h3>
+                    <p>Derin gevşeme, Mor tonlar, Tatlı aroma.</p>
+                </div>
+                <div class="strain-card" onclick="startSim('SATIVA')">
+                    <h3 style="color:#ff0; font-size:2rem; margin-bottom:10px;">LEMON HAZE</h3>
+                    <p>Enerji, Neon sarı, Limon aroması.</p>
+                </div>
+                <div class="strain-card" onclick="startSim('HYBRID')">
+                    <h3 style="color:#0f8; font-size:2rem; margin-bottom:10px;">GORILLA GLUE</h3>
+                    <p>Dengeli etki, Çam yeşili, Güçlü yapı.</p>
+                </div>
             </div>
         </div>
-    </div>
 
-    <div id="selection-screen" class="hud-element">
-        <h2 style="font-family:'Audiowide'; font-size: 3rem; margin-bottom: 40px; color:white;">STRAIN SEÇİNİ</h2>
-        
-        <div class="strain-card" onclick="startGame('OG_KUSH')">
-            <div class="strain-title" style="color:#00ff88">OG KUSH</div>
-            <div class="strain-desc">Topraksı, Çam, Klasik. Dengeli bir deneyim.</div>
-        </div>
-        
-        <div class="strain-card" onclick="startGame('PURPLE_HAZE')">
-            <div class="strain-title" style="color:#a600ff">PURPLE HAZE</div>
-            <div class="strain-desc">Tatlı, Meyveli, Egzotik. Görsel halüsinasyonlar.</div>
+        <div id="task-bar" style="display:none;">
+            <div class="task-text" id="instruction-text">TALİMATLAR</div>
         </div>
 
-        <div class="strain-card" onclick="startGame('LEMON_SKUNK')">
-            <div class="strain-title" style="color:#ffea00">LEMON SKUNK</div>
-            <div class="strain-desc">Narenciye, Keskin, Enerjik. Hızlı etki.</div>
-        </div>
+        <div id="progress-container"><div id="progress-fill"></div></div>
     </div>
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
-    <script src="https://unpkg.com/three@0.128.0/examples/js/postprocessing/EffectComposer.js"></script>
-    <script src="https://unpkg.com/three@0.128.0/examples/js/postprocessing/RenderPass.js"></script>
-    <script src="https://unpkg.com/three@0.128.0/examples/js/postprocessing/ShaderPass.js"></script>
-    <script src="https://unpkg.com/three@0.128.0/examples/js/shaders/CopyShader.js"></script>
-    <script src="https://unpkg.com/three@0.128.0/examples/js/shaders/LuminosityHighPassShader.js"></script>
-    <script src="https://unpkg.com/three@0.128.0/examples/js/postprocessing/UnrealBloomPass.js"></script>
-    <script src="https://unpkg.com/three@0.128.0/examples/js/shaders/DigitalGlitch.js"></script>
-    <script src="https://unpkg.com/three@0.128.0/examples/js/postprocessing/GlitchPass.js"></script>
 
     <script>
-        /**
-         * ==========================================
-         * SATIVA UNIVERSE - MEGA ENGINE CORE
-         * ==========================================
-         */
-
-        // --- GLOBAL CONFIGURATION ---
+        // --- MOTOR AYARLARI ---
         const CONFIG = {
             colors: {
                 bg: 0x050505,
                 primary: 0x00ff88,
-                secondary: 0x00f7ff,
-                fire: 0xff5500,
-                ash: 0x888888,
-                paper: 0xe0e0e0
+                fire: 0xff4400,
+                smoke: 0xeeeeee
             },
-            physics: {
-                gravity: -9.8,
-                smokeBuoyancy: 0.05,
-                wind: 0.002
-            },
-            strain: null // Seçime göre dolacak
+            strain: 'HYBRID'
         };
 
-        // --- STATE MANAGEMENT ---
         const STATE = {
-            phase: 'INIT', // INIT, SELECTION, GRINDING, ROLLING, LIGHTING, SMOKING, END
-            grindProgress: 0,
-            rollProgress: 0,
-            litProgress: 0,
-            smokeLevel: 0, // Ne kadar içtiği (0-100)
-            isInteracting: false,
+            phase: 'INIT', // INIT, GRIND, ROLL, LIGHT, SMOKE, DONE
+            progress: 0,
+            active: false,
+            clicks: 0, // Öğütme için
             mouse: new THREE.Vector2(),
-            lastMouse: new THREE.Vector2()
+            isMouseDown: false
         };
 
-        // --- ENGINE VARIABLES ---
-        let scene, camera, renderer, composer;
-        let bloomPass, glitchPass;
-        let clock = new THREE.Clock();
+        let scene, camera, renderer;
+        let grinder, handsLeft, handsRight, paper, mixParticles;
+        let joint, lighter, flame;
+        let smokeParticles = [];
         
-        // --- GAME OBJECTS ---
-        let handLeft, handRight;
-        let grinderGroup, grinderTop;
-        let paperMesh, weedParticles;
-        let jointGroup, jointBody, emberMesh, ashTip;
-        let lighterGroup, lighterFlame;
-        let smokeSystem = [];
-        
-        // --- 1. INITIALIZATION & SETUP ---
-        
+        // --- 1. SİSTEM BAŞLATMA ---
         function init() {
-            // Scene Setup
+            // Sahne
             scene = new THREE.Scene();
             scene.background = new THREE.Color(CONFIG.colors.bg);
             scene.fog = new THREE.FogExp2(CONFIG.colors.bg, 0.02);
 
-            // Camera
-            camera = new THREE.PerspectiveCamera(45, window.innerWidth/window.innerHeight, 0.1, 100);
-            camera.position.set(0, 5, 12);
-            camera.lookAt(0,0,0);
+            // Kamera
+            camera = new THREE.PerspectiveCamera(50, window.innerWidth / window.innerHeight, 0.1, 100);
+            camera.position.set(0, 5, 10);
+            camera.lookAt(0, 0, 0);
 
-            // Renderer
-            renderer = new THREE.WebGLRenderer({ antialias: false, powerPreference: "high-performance" }); // Bloom için AA kapatılır genelde
+            // Render
+            renderer = new THREE.WebGLRenderer({ antialias: true, alpha: false });
             renderer.setSize(window.innerWidth, window.innerHeight);
             renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
             renderer.shadowMap.enabled = true;
-            renderer.shadowMap.type = THREE.PCFSoftShadowMap;
-            document.getElementById('canvas-container').appendChild(renderer.domElement);
+            document.getElementById('webgl-container').appendChild(renderer.domElement);
 
-            // Lighting
-            setupLights();
+            // Işıklar
+            const amb = new THREE.AmbientLight(0xffffff, 0.4);
+            scene.add(amb);
+            const spot = new THREE.SpotLight(0xffffff, 1.5);
+            spot.position.set(5, 10, 5);
+            spot.castShadow = true;
+            scene.add(spot);
+            
+            // Neon Işıklar
+            const p1 = new THREE.PointLight(0x00ff88, 0.5); p1.position.set(-5, 2, 0); scene.add(p1);
+            const p2 = new THREE.PointLight(0x00aaff, 0.5); p2.position.set(5, 2, 0); scene.add(p2);
 
-            // Post Processing (MEGA GÖRÜNTÜ İÇİN)
-            setupPostProcessing();
-
-            // Event Listeners
+            // Eventler
             window.addEventListener('resize', onResize);
             window.addEventListener('mousemove', onMouseMove);
-            
-            // Input Handlers
+            window.addEventListener('mousedown', () => STATE.isMouseDown = true);
+            window.addEventListener('mouseup', () => STATE.isMouseDown = false);
+
+            // Input İşleyicileri
             setupInputs();
 
-            // Start Loop
-            updateLoader(100);
+            // Yükleme Ekranını Kapat
+            document.getElementById('loader').style.display = 'none';
+
+            animate();
         }
 
-        function setupLights() {
-            const ambient = new THREE.AmbientLight(0xffffff, 0.1);
-            scene.add(ambient);
-
-            const mainSpot = new THREE.SpotLight(0xffffff, 1);
-            mainSpot.position.set(5, 10, 5);
-            mainSpot.castShadow = true;
-            mainSpot.shadow.mapSize.width = 1024;
-            mainSpot.shadow.mapSize.height = 1024;
-            scene.add(mainSpot);
-
-            // Neon Işıklar (Ortam için)
-            const blueLight = new THREE.PointLight(CONFIG.colors.secondary, 0.5, 20);
-            blueLight.position.set(-5, 2, -5);
-            scene.add(blueLight);
-
-            const greenLight = new THREE.PointLight(CONFIG.colors.primary, 0.5, 20);
-            greenLight.position.set(5, 2, -5);
-            scene.add(greenLight);
-        }
-
-        function setupPostProcessing() {
-            composer = new THREE.EffectComposer(renderer);
-            const renderPass = new THREE.RenderPass(scene, camera);
-            composer.addPass(renderPass);
-
-            // Bloom (Parlama)
-            bloomPass = new THREE.UnrealBloomPass(
-                new THREE.Vector2(window.innerWidth, window.innerHeight),
-                1.5, 0.4, 0.85
-            );
-            bloomPass.threshold = 0.2;
-            bloomPass.strength = 1.2; // Parlaklık gücü
-            bloomPass.radius = 0.5;
-            composer.addPass(bloomPass);
-
-            // Glitch (High olduğunda açılacak)
-            glitchPass = new THREE.GlitchPass();
-            glitchPass.enabled = false;
-            glitchPass.goWild = false;
-            composer.addPass(glitchPass);
-        }
-
-        // --- 2. GAMEPLAY LOGIC START ---
-
-        window.startGame = function(strainType) {
-            // Strain Ayarları
-            CONFIG.strain = strainType;
-            if(strainType === 'PURPLE_HAZE') CONFIG.colors.primary = 0xa600ff;
-            if(strainType === 'LEMON_SKUNK') CONFIG.colors.primary = 0xffea00;
-            
-            // UI Güncelle
-            document.getElementById('selection-screen').style.display = 'none';
-            document.querySelector('h1').style.color = '#' + CONFIG.colors.primary.toString(16);
-            
-            // Sahneye Objeleri Ekle
-            createGrinder();
-            createHands();
-            createRollingStation();
-            createJoint();
-            createLighter();
-
-            // İlk Aşama Başlat: GRINDING
-            startGrindingPhase();
-        };
-
-        // --- 3. OBJECT CREATION (PROCEDURAL) ---
+        // --- 2. OBJE OLUŞTURUCULAR (Güvenli Geometriler) ---
 
         function createGrinder() {
-            grinderGroup = new THREE.Group();
+            const group = new THREE.Group();
             
-            // Alt Kısım
-            const baseGeo = new THREE.CylinderGeometry(1.5, 1.5, 0.5, 32);
-            const metalMat = new THREE.MeshStandardMaterial({ 
-                color: 0x333333, metalness: 0.9, roughness: 0.2 
-            });
-            const base = new THREE.Mesh(baseGeo, metalMat);
-            
-            // Üst Kısım (Dönecek)
-            grinderTop = new THREE.Mesh(baseGeo, metalMat);
-            grinderTop.position.y = 0.55;
-            
-            // Dişler (Görsel Detay)
-            const toothGeo = new THREE.ConeGeometry(0.1, 0.3, 4);
-            for(let i=0; i<8; i++) {
-                const tooth = new THREE.Mesh(toothGeo, metalMat);
-                tooth.position.set(Math.cos(i)*0.8, 0.3, Math.sin(i)*0.8);
-                grinderTop.add(tooth);
-            }
+            // Alt
+            const baseGeo = new THREE.CylinderGeometry(1.5, 1.5, 0.8, 32);
+            const mat = new THREE.MeshStandardMaterial({ color: 0x222222, roughness: 0.3, metalness: 0.8 });
+            const base = new THREE.Mesh(baseGeo, mat);
+            group.add(base);
 
-            grinderGroup.add(base);
-            grinderGroup.add(grinderTop);
-            grinderGroup.visible = false;
-            scene.add(grinderGroup);
+            // Üst (Kapak)
+            const topGeo = new THREE.CylinderGeometry(1.55, 1.55, 0.4, 32);
+            const top = new THREE.Mesh(topGeo, mat);
+            top.position.y = 0.6;
+            top.userData = { isTop: true }; // Tanımlayıcı
+            group.add(top);
+
+            // İçerik (Ot)
+            const weedGeo = new THREE.DodecahedronGeometry(0.8);
+            const weedMat = new THREE.MeshStandardMaterial({ color: CONFIG.colors.primary, wireframe: false });
+            const weed = new THREE.Mesh(weedGeo, weedMat);
+            weed.position.y = 0.4;
+            weed.scale.set(0.8, 0.8, 0.8);
+            weed.visible = false; // Başta gizli
+            group.userData = { weed: weed };
+            group.add(weed);
+
+            return group;
         }
 
         function createHands() {
-            // Sibernetik Eller (Basit Geometri + Neon Wireframe)
-            const handGeo = new THREE.BoxGeometry(1.2, 0.3, 2);
-            const handMat = new THREE.MeshStandardMaterial({ color: 0x111111 });
-            const wireMat = new THREE.MeshBasicMaterial({ color: CONFIG.colors.primary, wireframe: true });
-
-            handLeft = new THREE.Group();
-            const meshL = new THREE.Mesh(handGeo, handMat);
-            meshL.add(new THREE.Mesh(handGeo, wireMat));
-            handLeft.add(meshL);
+            // Cyber Eller (Basit Bloklar)
+            const mat = new THREE.MeshStandardMaterial({ color: 0x111111, roughness: 0.2 });
+            const wire = new THREE.MeshBasicMaterial({ color: CONFIG.colors.primary, wireframe: true });
             
-            // Parmaklar
-            for(let i=0; i<4; i++) {
-                const f = new THREE.Mesh(new THREE.BoxGeometry(0.2, 0.2, 0.8), handMat);
-                f.position.set((i-1.5)*0.3, 0, 1.2);
-                f.add(new THREE.Mesh(new THREE.BoxGeometry(0.2, 0.2, 0.8), wireMat));
-                handLeft.add(f);
+            function buildHand() {
+                const g = new THREE.Group();
+                const palm = new THREE.Mesh(new THREE.BoxGeometry(1.5, 0.5, 2), mat);
+                palm.add(new THREE.Mesh(new THREE.BoxGeometry(1.52, 0.52, 2.02), wire));
+                g.add(palm);
+                // Parmaklar
+                for(let i=0; i<4; i++){
+                    const f = new THREE.Mesh(new THREE.BoxGeometry(0.3, 0.3, 1), mat);
+                    f.position.set((i-1.5)*0.4, 0, 1.5);
+                    g.add(f);
+                }
+                return g;
             }
 
-            handRight = handLeft.clone();
+            handsLeft = buildHand();
+            handsRight = buildHand();
+            handsLeft.position.set(-10, 0, 0); // Ekran dışı
+            handsRight.position.set(10, 0, 0);
             
-            handLeft.position.set(-5, 0, 2); // Başlangıçta uzakta
-            handRight.position.set(5, 0, 2);
-
-            scene.add(handLeft);
-            scene.add(handRight);
+            scene.add(handsLeft);
+            scene.add(handsRight);
         }
 
-        function createRollingStation() {
-            // Kağıt
-            const pGeo = new THREE.PlaneGeometry(3, 2);
-            const pMat = new THREE.MeshStandardMaterial({ color: CONFIG.colors.paper, side: THREE.DoubleSide });
-            paperMesh = new THREE.Mesh(pGeo, pMat);
-            paperMesh.rotation.x = -Math.PI/2;
-            paperMesh.position.y = 0;
-            paperMesh.visible = false;
-            scene.add(paperMesh);
+        function createRollingPaper() {
+            paper = new THREE.Mesh(
+                new THREE.PlaneGeometry(3.5, 2.5),
+                new THREE.MeshStandardMaterial({ color: 0xffffff, side: THREE.DoubleSide })
+            );
+            paper.rotation.x = -Math.PI / 2;
+            paper.visible = false;
+            scene.add(paper);
 
-            // Weed Particles (Karışım)
-            const partGeo = new THREE.BufferGeometry();
-            const count = 500;
-            const pos = new Float32Array(count * 3);
-            for(let i=0; i<count*3; i+=3) {
-                pos[i] = (Math.random()-0.5) * 2.5; // x
-                pos[i+1] = Math.random() * 0.2; // y
-                pos[i+2] = (Math.random()-0.5) * 1.5; // z
+            // Karışım (Particles)
+            const geo = new THREE.BufferGeometry();
+            const pos = [];
+            for(let i=0; i<300; i++) {
+                pos.push((Math.random()-0.5)*3, Math.random()*0.2, (Math.random()-0.5)*1.5);
             }
-            partGeo.setAttribute('position', new THREE.BufferAttribute(pos, 3));
-            let weedColor = 0x2d5a27; // Default green
-            if(CONFIG.strain === 'PURPLE_HAZE') weedColor = 0x4b0082;
-            
-            const partMat = new THREE.PointsMaterial({ color: weedColor, size: 0.05 });
-            weedParticles = new THREE.Points(partGeo, partMat);
-            weedParticles.visible = false;
-            scene.add(weedParticles);
+            geo.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3));
+            mixParticles = new THREE.Points(
+                geo,
+                new THREE.PointsMaterial({ color: CONFIG.colors.primary, size: 0.08 })
+            );
+            mixParticles.visible = false;
+            scene.add(mixParticles);
         }
 
         function createJoint() {
-            jointGroup = new THREE.Group();
+            const group = new THREE.Group();
             
-            // Gövde
-            const bodyGeo = new THREE.CylinderGeometry(0.15, 0.15, 3, 32);
-            bodyGeo.translate(0, 1.5, 0); // Pivot altta
-            const bodyMat = new THREE.MeshStandardMaterial({ color: CONFIG.colors.paper });
-            jointBody = new THREE.Mesh(bodyGeo, bodyMat);
-            jointGroup.add(jointBody);
+            // Dal
+            const body = new THREE.Mesh(
+                new THREE.CylinderGeometry(0.15, 0.12, 3.5, 32),
+                new THREE.MeshStandardMaterial({ color: 0xffffff })
+            );
+            body.rotation.z = Math.PI / 2;
+            group.add(body);
 
-            // Yanma Ucu (Ember)
-            const emberGeo = new THREE.SphereGeometry(0.14, 16, 16);
-            const emberMat = new THREE.MeshStandardMaterial({ 
-                color: 0x000000, 
-                emissive: CONFIG.colors.fire, 
-                emissiveIntensity: 0 
-            });
-            emberMesh = new THREE.Mesh(emberGeo, emberMat);
-            emberMesh.position.y = 3;
-            // Ember ışığı
-            const eLight = new THREE.PointLight(CONFIG.colors.fire, 0, 5);
-            emberMesh.add(eLight);
-            jointGroup.add(emberMesh);
-
-            // Kül (Ash)
-            const ashGeo = new THREE.CylinderGeometry(0.14, 0.1, 0.1, 16);
-            const ashMat = new THREE.MeshStandardMaterial({ color: CONFIG.colors.ash });
-            ashTip = new THREE.Mesh(ashGeo, ashMat);
-            ashTip.position.y = 0.1; // Ember'in üstünde
-            emberMesh.add(ashTip);
-            ashTip.visible = false;
-
-            jointGroup.rotation.x = Math.PI/2;
-            jointGroup.visible = false;
-            scene.add(jointGroup);
+            // Uç (Köz)
+            const tip = new THREE.Mesh(
+                new THREE.SphereGeometry(0.14, 16, 16),
+                new THREE.MeshStandardMaterial({ color: 0x222222, emissive: 0xff3300, emissiveIntensity: 0 })
+            );
+            tip.position.x = 1.75;
+            tip.userData = { isEmber: true };
+            
+            // Işık (Ember Light)
+            const light = new THREE.PointLight(0xff4400, 0, 3);
+            tip.add(light);
+            
+            group.add(tip);
+            
+            group.visible = false;
+            joint = group;
+            scene.add(joint);
         }
 
         function createLighter() {
-            lighterGroup = new THREE.Group();
-            const lGeo = new THREE.BoxGeometry(0.8, 2, 0.3);
-            const lMat = new THREE.MeshStandardMaterial({ color: 0x111111, metalness:0.5, roughness:0.2 });
-            const body = new THREE.Mesh(lGeo, lMat);
-            lighterGroup.add(body);
-
+            lighter = new THREE.Group();
+            const body = new THREE.Mesh(
+                new THREE.BoxGeometry(0.8, 2.2, 0.4),
+                new THREE.MeshStandardMaterial({ color: 0x444444, metalness: 0.5 })
+            );
+            lighter.add(body);
+            
             // Alev
-            const fGeo = new THREE.ConeGeometry(0.1, 0.5, 8);
+            const fGeo = new THREE.ConeGeometry(0.15, 0.6, 16);
             const fMat = new THREE.MeshBasicMaterial({ color: 0xffaa00 });
-            lighterFlame = new THREE.Mesh(fGeo, fMat);
-            lighterFlame.position.y = 1.2;
-            lighterFlame.visible = false;
-            lighterGroup.add(lighterFlame);
+            flame = new THREE.Mesh(fGeo, fMat);
+            flame.position.y = 1.4;
+            flame.visible = false;
             
-            // Alev Işığı
-            lighterFlame.add(new THREE.PointLight(0xffaa00, 1, 5));
-
-            lighterGroup.visible = false;
-            scene.add(lighterGroup);
+            const fLight = new THREE.PointLight(0xffaa00, 1, 4);
+            flame.add(fLight);
+            
+            lighter.add(flame);
+            lighter.visible = false;
+            scene.add(lighter);
         }
 
-        // --- 4. PHASE LOGIC ---
+        // --- 3. OYUN AKIŞI ---
 
-        function setPrompt(text, keys) {
-            const el = document.getElementById('prompt-text');
-            el.innerHTML = text; // HTML eklenebilir (span class key)
-            document.getElementById('action-prompt').style.display = 'block';
+        window.startSim = function(type) {
+            CONFIG.strain = type;
+            if(type === 'INDICA') CONFIG.colors.primary = 0x8800ff;
+            if(type === 'SATIVA') CONFIG.colors.primary = 0xffff00;
+            
+            document.getElementById('intro-screen').style.display = 'none';
+            document.getElementById('task-bar').style.display = 'block';
+
+            // Objeleri Yarat
+            grinder = createGrinder();
+            scene.add(grinder);
+            createHands();
+            createRollingPaper();
+            createJoint();
+            createLighter();
+
+            startGrindPhase();
+        };
+
+        function setInstruction(text) {
+            document.getElementById('instruction-text').innerHTML = text;
         }
 
-        function startGrindingPhase() {
-            STATE.phase = 'GRINDING';
-            grinderGroup.visible = true;
-            grinderGroup.position.set(0, 0, 0);
-            
-            gsap.from(grinderGroup.position, { y: 5, duration: 1, ease: 'bounce.out' });
-            
-            setPrompt('ÖĞÜTMEK İÇİN <span class="key">MOUSE</span> İLE DAİRE ÇİZ');
-            document.getElementById('state-display').innerText = "DURUM: ÖĞÜTME";
+        function updateProgress(val) {
+            document.getElementById('progress-fill').style.width = val + '%';
         }
 
-        function startRollingPhase() {
-            STATE.phase = 'ROLLING';
-            // Grinder git, kağıt gel
-            gsap.to(grinderGroup.position, { y: -5, duration: 0.5, onComplete: () => grinderGroup.visible = false });
+        // FAZ 1: ÖĞÜTME
+        function startGrindPhase() {
+            STATE.phase = 'GRIND';
+            STATE.clicks = 0;
+            STATE.progress = 0;
             
-            setTimeout(() => {
-                paperMesh.visible = true;
-                weedParticles.visible = true;
-                paperMesh.position.y = -2;
-                gsap.to(paperMesh.position, { y: 0, duration: 0.5 });
+            grinder.position.set(0, -5, 0);
+            gsap.to(grinder.position, { y: 0, duration: 1, ease: 'back.out' });
+            
+            setInstruction('ÖĞÜTMEK İÇİN <span class="key">TIKLA</span> (HIZLICA)');
+        }
+
+        function handleGrindClick() {
+            STATE.clicks++;
+            STATE.progress = (STATE.clicks / 20) * 100; // 20 Tıklama gerekli
+            
+            // Animasyon
+            grinder.children[1].rotation.y += 0.5; // Kapağı döndür
+            grinder.rotation.z = (Math.random()-0.5)*0.2; // Sallanma
+            
+            updateProgress(STATE.progress);
+
+            if(STATE.progress >= 100) {
+                STATE.phase = 'TRANSITION';
+                gsap.to(grinder.position, { y: -10, duration: 0.5 });
+                setTimeout(startRollPhase, 600);
+            }
+        }
+
+        // FAZ 2: SARMA
+        function startRollPhase() {
+            STATE.phase = 'ROLL';
+            STATE.progress = 0;
+            updateProgress(0);
+            
+            paper.visible = true;
+            mixParticles.visible = true;
+            paper.position.y = -2;
+            gsap.to(paper.position, { y: 0, duration: 0.5 });
+
+            // Eller gelsin
+            gsap.to(handsLeft.position, { x: -2.5, duration: 1 });
+            gsap.to(handsRight.position, { x: 2.5, duration: 1 });
+
+            setInstruction('SARMAK İÇİN <span class="key">BOŞLUK (SPACE)</span> BASILI TUT');
+        }
+
+        function updateRollLogic() {
+            STATE.progress += 0.5; // Hızlı dolum
+            updateProgress(STATE.progress);
+
+            // Eller birleşiyor
+            handsLeft.position.x = THREE.MathUtils.lerp(-2.5, -0.5, STATE.progress/100);
+            handsRight.position.x = THREE.MathUtils.lerp(2.5, 0.5, STATE.progress/100);
+            
+            // Kağıt kıvrılıyor (scale hilesi)
+            paper.scale.x = 1 - (STATE.progress/150);
+            
+            // Particles toplanıyor
+            const pos = mixParticles.geometry.attributes.position.array;
+            for(let i=0; i<pos.length; i+=3) pos[i] *= 0.98;
+            mixParticles.geometry.attributes.position.needsUpdate = true;
+
+            if(STATE.progress >= 100) {
+                STATE.phase = 'TRANSITION';
+                // Temizlik
+                gsap.to(handsLeft.position, { x: -10, duration: 0.5 });
+                gsap.to(handsRight.position, { x: 10, duration: 0.5 });
+                paper.visible = false;
+                mixParticles.visible = false;
                 
-                // Elleri getir
-                gsap.to(handLeft.position, { x: -3, duration: 1 });
-                gsap.to(handRight.position, { x: 3, duration: 1 });
+                setTimeout(startLightPhase, 500);
+            }
+        }
+
+        // FAZ 3: YAKMA
+        function startLightPhase() {
+            STATE.phase = 'LIGHT';
+            STATE.progress = 0;
+            updateProgress(0);
+
+            joint.visible = true;
+            joint.position.set(-2, 0, 0);
+            
+            lighter.visible = true;
+            lighter.position.set(2, -2, 0);
+
+            setInstruction('YAKMAK İÇİN <span class="key">SOL TIK</span> BASILI TUTUP UCUNA GÖTÜR');
+        }
+
+        function updateLightLogic() {
+            // Lighter mouse takip etsin (Basılı tutunca)
+            if(STATE.isMouseDown) {
+                // Mouse 3D pozisyon tahmini (Basit)
+                const targetX = STATE.mouse.x * 10;
+                const targetY = STATE.mouse.y * 10;
                 
-                setPrompt('SARMAK İÇİN <span class="key">SPACE</span> BASILI TUT');
-                document.getElementById('state-display').innerText = "DURUM: SARMA";
-            }, 500);
+                // Lerp ile yumuşak takip
+                lighter.position.x += (targetX - lighter.position.x) * 0.1;
+                lighter.position.y += (targetY - lighter.position.y) * 0.1;
+                
+                flame.visible = true;
+
+                // Mesafe kontrolü
+                const tipPos = new THREE.Vector3(1.75 + joint.position.x, joint.position.y, 0);
+                const flamePos = lighter.position.clone().add(new THREE.Vector3(0, 1.4, 0));
+                
+                if(flamePos.distanceTo(tipPos) < 1.5) {
+                    STATE.progress += 1;
+                    updateProgress(STATE.progress);
+                    
+                    // Uç kızarsın
+                    const ember = joint.children[1];
+                    ember.material.emissiveIntensity = STATE.progress / 20;
+                    ember.children[0].intensity = STATE.progress / 20;
+
+                    if(STATE.progress >= 100) {
+                        STATE.phase = 'TRANSITION';
+                        lighter.visible = false;
+                        setTimeout(startSmokePhase, 500);
+                    }
+                }
+            } else {
+                flame.visible = false;
+            }
         }
 
-        function startLightingPhase() {
-            STATE.phase = 'LIGHTING';
-            paperMesh.visible = false;
-            weedParticles.visible = false;
+        // FAZ 4: İÇME
+        function startSmokePhase() {
+            STATE.phase = 'SMOKE';
+            updateProgress(100); // Full bar
             
-            // Elleri çek
-            gsap.to(handLeft.position, { x: -8, duration: 1 });
-            gsap.to(handRight.position, { x: 8, duration: 1 });
+            // Sigara merkeze
+            gsap.to(joint.position, { x: 0, y: -2, z: 2, duration: 1 });
+            gsap.to(joint.rotation, { z: Math.PI / 2, duration: 1 }); // Dik konuma
 
-            // Sigarayı getir
-            jointGroup.visible = true;
-            jointGroup.position.set(-2, 0, 0);
-            jointGroup.rotation.z = -0.5;
-
-            // Çakmağı getir
-            lighterGroup.visible = true;
-            lighterGroup.position.set(2, -2, 0);
-
-            setPrompt('ÇAKMAK İÇİN <span class="key">SOL TIK</span> BAS VE UCUNU YAK');
-            document.getElementById('state-display').innerText = "DURUM: YAKMA";
+            setInstruction('<span class="key">SOL TIK</span> İÇ | <span class="key">BIRAK</span> ÜFLE');
         }
 
-        function startSmokingPhase() {
-            STATE.phase = 'SMOKING';
-            lighterGroup.visible = false;
-            
-            // Sigara konumu
-            gsap.to(jointGroup.position, { x: 0, y: -1, z: 2, duration: 1 });
-            gsap.to(jointGroup.rotation, { z: 0, x: Math.PI/2, duration: 1 });
+        function updateSmokeLogic() {
+            const ember = joint.children[1];
 
-            document.getElementById('high-meter-container').style.display = 'block';
-            setPrompt('<span class="key">SOL TIK</span>: İÇ | <span class="key">BIRAK</span>: ÜFLE');
-            document.getElementById('state-display').innerText = "DURUM: İÇME";
+            if(STATE.isMouseDown) {
+                // İÇME (Inhale)
+                camera.position.z = THREE.MathUtils.lerp(camera.position.z, 8, 0.05); // Zoom
+                ember.material.emissiveIntensity = 2 + Math.random(); // Titrek ışık
+                ember.children[0].intensity = 2;
+                
+                // Sigara kısalıyor
+                joint.children[0].scale.y *= 0.999; 
+                
+                // Köz pozisyonu güncelle (Basitçe X ekseninde geriye çek)
+                // Gerçekçi olması için scale'e bağlı pozisyon hesabı gerekir ama
+                // bu basit versiyonda görsel hile yeterli.
+                
+            } else {
+                // İÇMEME (Exhale/Idle)
+                camera.position.z = THREE.MathUtils.lerp(camera.position.z, 10, 0.02);
+                ember.material.emissiveIntensity = 0.5;
+                ember.children[0].intensity = 0.5;
+            }
         }
 
-        // --- 5. INPUT HANDLING & UPDATE LOOPS ---
-
+        // --- INPUT YÖNETİMİ ---
         function setupInputs() {
-            // Mouse Rotation (Grinding)
-            // Spacebar (Rolling)
+            // Grinding Tıklama
+            document.addEventListener('mousedown', () => {
+                if(STATE.phase === 'GRIND') handleGrindClick();
+            });
+
+            // Rolling Space
             document.addEventListener('keydown', (e) => {
-                if(e.code === 'Space' && STATE.phase === 'ROLLING') STATE.isInteracting = true;
+                if(e.code === 'Space' && STATE.phase === 'ROLL') STATE.isSpaceDown = true;
             });
             document.addEventListener('keyup', (e) => {
-                if(e.code === 'Space' && STATE.phase === 'ROLLING') STATE.isInteracting = false;
+                if(e.code === 'Space') STATE.isSpaceDown = false;
+                // Smoking Exhale Trigger
+                if(STATE.phase === 'SMOKE') createSmokeCloud();
             });
-
-            // Mouse Click (Lighting & Smoking)
-            document.addEventListener('mousedown', () => {
-                STATE.isInteracting = true;
-                if(STATE.phase === 'LIGHTING') {
-                    lighterFlame.visible = true;
-                    gsap.to(lighterGroup.position, { y: 0, x: 1, duration: 0.3 }); // Yaklaştır
-                }
-            });
+            
+            // Smoking Mouse Up (Exhale)
             document.addEventListener('mouseup', () => {
-                STATE.isInteracting = false;
-                if(STATE.phase === 'LIGHTING') {
-                    lighterFlame.visible = false;
-                    gsap.to(lighterGroup.position, { y: -2, x: 2, duration: 0.3 }); // Uzaklaştır
-                }
-                if(STATE.phase === 'SMOKING') {
-                    exhaleSmoke();
-                }
+                if(STATE.phase === 'SMOKE') createSmokeCloud();
             });
         }
 
         function onMouseMove(e) {
             STATE.mouse.x = (e.clientX / window.innerWidth) * 2 - 1;
             STATE.mouse.y = -(e.clientY / window.innerHeight) * 2 + 1;
-
-            if(STATE.phase === 'GRINDING') {
-                // Basit dönme algılaması
-                const deltaX = Math.abs(STATE.mouse.x - STATE.lastMouse.x);
-                const deltaY = Math.abs(STATE.mouse.y - STATE.lastMouse.y);
-                if(deltaX > 0.01 || deltaY > 0.01) {
-                    grinderTop.rotation.y += 0.2;
-                    STATE.grindProgress += 0.5;
-                    if(STATE.grindProgress > 100) {
-                        STATE.grindProgress = 0; // Reset
-                        startRollingPhase();
-                    }
-                }
-            }
             
-            if(STATE.phase === 'SMOKING') {
-                // Sigara fareyi takip etsin
-                gsap.to(jointGroup.rotation, { y: STATE.mouse.x * 0.5, x: (Math.PI/2) - (STATE.mouse.y * 0.3), duration: 0.5 });
-            }
-
-            STATE.lastMouse.copy(STATE.mouse);
-        }
-
-        // --- 6. ANIMATION LOOP (THE HEART) ---
-
-        function animate() {
-            requestAnimationFrame(animate);
-            
-            const delta = clock.getDelta();
-            const time = clock.getElapsedTime();
-
-            // Update FPS
-            document.getElementById('fps-counter').innerText = `FPS: ${Math.round(1/delta)}`;
-
-            // --- PHASE SPECIFIC LOGIC ---
-            
-            if(STATE.phase === 'ROLLING' && STATE.isInteracting) {
-                STATE.rollProgress += 0.5;
-                
-                // Eller yaklaşsın
-                handLeft.position.x = THREE.MathUtils.lerp(-3, -1, STATE.rollProgress/100);
-                handRight.position.x = THREE.MathUtils.lerp(3, 1, STATE.rollProgress/100);
-                
-                // Kağıt kıvrılsın (Scale trick)
-                paperMesh.scale.x = THREE.MathUtils.lerp(1, 0.2, STATE.rollProgress/100);
-                
-                // Partiküller toplansın
-                const positions = weedParticles.geometry.attributes.position.array;
-                for(let i=0; i<positions.length; i+=3) {
-                    positions[i] *= 0.98; // X ekseninde sıkış
-                    positions[i+2] *= 0.98; // Z ekseninde silindir ol
-                }
-                weedParticles.geometry.attributes.position.needsUpdate = true;
-
-                if(STATE.rollProgress >= 100) startLightingPhase();
-            }
-
-            if(STATE.phase === 'LIGHTING' && STATE.isInteracting) {
-                // Alev sigaraya yakın mı?
-                const dist = lighterGroup.position.distanceTo(jointGroup.position); // Basit kontrol
-                if(dist < 3.5) {
-                    STATE.litProgress += 1;
-                    // Uç kızarsın
-                    emberMesh.material.emissiveIntensity = STATE.litProgress / 50;
-                    emberMesh.children[0].intensity = STATE.litProgress / 20;
-
-                    if(STATE.litProgress > 100) startSmokingPhase();
-                }
-            }
-
-            if(STATE.phase === 'SMOKING') {
-                if(STATE.isInteracting) {
-                    // İÇİNE ÇEKİYOR
-                    camera.position.z = THREE.MathUtils.lerp(camera.position.z, 10, 0.05); // Zoom in
-                    emberMesh.material.emissiveIntensity = 5 + Math.sin(time*10)*2; // Parlama
-                    emberMesh.children[0].intensity = 2;
-                    
-                    // Sigara kısalıyor
-                    jointBody.scale.y -= 0.001;
-                    if(jointBody.scale.y < 0.2) jointBody.scale.y = 0.2;
-                    // Ember konumu
-                    emberMesh.position.y = jointBody.scale.y * 2; // Pivot ayarı
-
-                    STATE.smokeLevel += 0.1;
-                    updateHighEffects();
-                } else {
-                    // NORMAL DURUM
-                    camera.position.z = THREE.MathUtils.lerp(camera.position.z, 12, 0.05);
-                    emberMesh.material.emissiveIntensity = THREE.MathUtils.lerp(emberMesh.material.emissiveIntensity, 0.5, 0.1);
-                }
-            }
-
-            // --- SYSTEMS UPDATE ---
-            updateSmoke(delta);
-            
-            // Render
-            composer.render();
-        }
-
-        // --- 7. EFFECTS & PARTICLES ---
-
-        function updateHighEffects() {
-            // High Meter UI
-            const fill = document.getElementById('high-meter-fill');
-            fill.style.height = Math.min(STATE.smokeLevel, 100) + '%';
-
-            // Visual Distortion
-            if(STATE.smokeLevel > 20) {
-                bloomPass.strength = 1.2 + (STATE.smokeLevel/100);
-                bloomPass.radius = 0.5 + (STATE.smokeLevel/200);
-            }
-            
-            if(STATE.smokeLevel > 50) {
-                // Kamera sallantısı
-                camera.position.x += (Math.random()-0.5) * 0.05;
-                camera.position.y += (Math.random()-0.5) * 0.05;
-                
-                // Renk kayması (Hue Shift)
-                const hue = (Date.now() * 0.0001) % 1;
-                const color = new THREE.Color().setHSL(hue, 1, 0.5);
-                // Ortam ışığını değiştirme denemesi olabilir
-            }
-
-            if(STATE.smokeLevel > 80) {
-                glitchPass.enabled = true;
-                glitchPass.goWild = Math.random() > 0.95; // Arada çıldırsın
+            // Sigara takip (Smoke modunda)
+            if(STATE.phase === 'SMOKE' && joint) {
+                gsap.to(joint.rotation, { 
+                    x: STATE.mouse.y * 0.5, 
+                    y: STATE.mouse.x * 0.5, 
+                    duration: 0.5 
+                });
             }
         }
 
-        // Duman Sistemi (Canvas Texture Generator)
-        function getSmokeTexture() {
+        // --- EFEKTLER ---
+        function createSmokeTexture() {
             const c = document.createElement('canvas'); c.width=64; c.height=64;
             const ctx = c.getContext('2d');
             const g = ctx.createRadialGradient(32,32,0,32,32,32);
-            g.addColorStop(0,'rgba(255,255,255,0.5)');
-            g.addColorStop(1,'rgba(0,0,0,0)');
+            g.addColorStop(0,'rgba(255,255,255,0.3)'); g.addColorStop(1,'rgba(0,0,0,0)');
             ctx.fillStyle = g; ctx.fillRect(0,0,64,64);
             return new THREE.CanvasTexture(c);
         }
-        const smokeTex = getSmokeTexture();
+        const smokeTex = createSmokeTexture();
 
-        function exhaleSmoke() {
-            // Bir sürü duman spawnla
-            for(let i=0; i<20; i++) {
-                const mat = new THREE.SpriteMaterial({ map: smokeTex, color: 0xeeeeee, transparent: true, opacity: 0.5 });
+        function createSmokeCloud() {
+            // Duman üfle
+            for(let i=0; i<15; i++) {
+                const mat = new THREE.SpriteMaterial({ map: smokeTex, color: 0xdddddd, transparent: true, opacity: 0.4 });
                 const sprite = new THREE.Sprite(mat);
-                
-                // Ekranın altından
-                sprite.position.set((Math.random()-0.5)*2, -3, 8);
-                sprite.scale.set(2,2,2);
-                
-                sprite.userData = {
-                    vel: new THREE.Vector3((Math.random()-0.5)*0.02, 0.05 + Math.random()*0.05, 0),
-                    life: 1.0,
-                    growth: 0.03
+                sprite.position.set((Math.random()-0.5)*2, -2, 6);
+                sprite.scale.set(1.5, 1.5, 1.5);
+                sprite.userData = { 
+                    vel: new THREE.Vector3((Math.random()-0.5)*0.02, 0.03+Math.random()*0.02, 0),
+                    life: 1.0 
                 };
-                
                 scene.add(sprite);
-                smokeSystem.push(sprite);
+                smokeParticles.push(sprite);
             }
         }
 
-        function updateSmoke(dt) {
-            for(let i=smokeSystem.length-1; i>=0; i--) {
-                const p = smokeSystem[i];
+        // --- ANA DÖNGÜ ---
+        function animate() {
+            requestAnimationFrame(animate);
+            
+            // Faz Mantığı
+            if(STATE.phase === 'ROLL' && STATE.isSpaceDown) updateRollLogic();
+            if(STATE.phase === 'LIGHT') updateLightLogic();
+            if(STATE.phase === 'SMOKE') updateSmokeLogic();
+
+            // Parçacık Güncelleme
+            for(let i=smokeParticles.length-1; i>=0; i--) {
+                const p = smokeParticles[i];
                 p.position.add(p.userData.vel);
-                p.scale.addScalar(p.userData.growth);
-                p.userData.life -= dt * 0.5;
+                p.scale.addScalar(0.01);
+                p.userData.life -= 0.005;
                 p.material.opacity = p.userData.life * 0.4;
-                
                 if(p.userData.life <= 0) {
                     scene.remove(p);
-                    smokeSystem.splice(i, 1);
+                    smokeParticles.splice(i,1);
                 }
             }
+
+            renderer.render(scene, camera);
+            
+            // UI Güncelleme
+            document.getElementById('phase-display').innerText = STATE.phase;
         }
 
-        // --- UTILS ---
         function onResize() {
             camera.aspect = window.innerWidth / window.innerHeight;
             camera.updateProjectionMatrix();
             renderer.setSize(window.innerWidth, window.innerHeight);
-            composer.setSize(window.innerWidth, window.innerHeight);
         }
 
-        function updateLoader(percent) {
-            document.getElementById('loader').innerText = `SİSTEM BAŞLATILIYOR... %${percent}`;
-            if(percent >= 100) {
-                setTimeout(() => {
-                    document.getElementById('loader').style.display = 'none';
-                }, 500);
-            }
-        }
-
-        // --- START ENGINE ---
+        // Başlat
         init();
 
     </script>
