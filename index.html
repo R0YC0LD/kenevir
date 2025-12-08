@@ -3,628 +3,827 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <title>CYBER BREACH: SYSTEM SHOCK (STABLE)</title>
+    <title>CYBER BREACH: NEURO LINK [V9.0]</title>
     <style>
-        /* --- TEMEL AYARLAR --- */
+        /* --- 1. CORE VISUALS & RESET --- */
         :root {
-            --bg: #000000;
-            --panel: #0b0f19;
-            --primary: #00f3ff;
-            --danger: #ff003c;
-            --warn: #ffcc00;
-            --safe: #00ff88;
-            --font-ui: 'Segoe UI', sans-serif;
+            --bg-color: #020202;
+            --glass-panel: rgba(10, 15, 20, 0.92);
+            --border-color: #1a2a3a;
+            
+            --c-cyan: #00f3ff;
+            --c-pink: #ff0055;
+            --c-gold: #ffcc00;
+            --c-green: #00ff66;
+            --c-purple: #bc13fe;
+            --c-danger: #ff2a2a;
+
+            --font-main: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
             --font-mono: 'Courier New', monospace;
         }
 
-        * { box-sizing: border-box; user-select: none; -webkit-user-select: none; cursor: default; }
-        
+        * { box-sizing: border-box; user-select: none; -webkit-user-select: none; cursor: default; outline: none; }
+        ::-webkit-scrollbar { width: 6px; background: #000; }
+        ::-webkit-scrollbar-thumb { background: #333; border-radius: 3px; }
+        ::-webkit-scrollbar-thumb:hover { background: var(--c-cyan); }
+
         body {
-            margin: 0; background: var(--bg); color: #fff; font-family: var(--font-ui);
-            height: 100vh; overflow: hidden; display: flex; justify-content: center; align-items: center;
+            margin: 0; background-color: var(--bg-color); color: #fff;
+            font-family: var(--font-main); height: 100vh; overflow: hidden;
+            display: flex; justify-content: center; align-items: center;
         }
 
-        /* --- EFEKTLER --- */
+        /* --- 2. BACKGROUND & FX --- */
+        #bg-canvas { position: fixed; top:0; left:0; width:100%; height:100%; z-index:-1; opacity: 0.4; }
+        
         .scanlines {
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 100;
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 900;
             background: linear-gradient(to bottom, rgba(255,255,255,0), rgba(255,255,255,0) 50%, rgba(0,0,0,0.1) 50%, rgba(0,0,0,0.1));
-            background-size: 100% 4px; opacity: 0.3;
-        }
-
-        .bg-grid {
-            position: fixed; top: 0; left: 0; width: 200%; height: 200%; z-index: -1;
-            background-image: 
-                linear-gradient(rgba(0, 243, 255, 0.05) 1px, transparent 1px),
-                linear-gradient(90deg, rgba(0, 243, 255, 0.05) 1px, transparent 1px);
-            background-size: 50px 50px;
-            transform: perspective(500px) rotateX(60deg) translateY(-100px) translateZ(-200px);
-            animation: gridMove 20s linear infinite;
-        }
-        @keyframes gridMove { 0% { transform: perspective(500px) rotateX(60deg) translateY(0); } 100% { transform: perspective(500px) rotateX(60deg) translateY(50px); } }
-
-        /* --- EKRANLAR --- */
-        .screen {
-            position: absolute; inset: 0; display: none; 
-            flex-direction: column; transition: opacity 0.5s; z-index: 10;
-        }
-        .screen.active { display: flex; opacity: 1; }
-
-        /* --- BIOS MENÜSÜ --- */
-        #bios-screen {
-            background: #000; color: var(--primary); font-family: var(--font-mono);
-            align-items: center; justify-content: center;
+            background-size: 100% 4px; opacity: 0.6;
         }
         
-        .bios-container { width: 600px; border: 2px solid var(--primary); padding: 30px; box-shadow: 0 0 30px var(--primary); }
-        .bios-title { font-size: 3rem; font-weight: bold; margin-bottom: 30px; text-shadow: 0 0 10px var(--primary); text-align: center; }
-        
-        .menu-btn {
-            background: transparent; border: 1px solid #333; color: #aaa; width: 100%;
-            padding: 15px; margin-bottom: 10px; cursor: pointer; text-align: left;
-            font-family: var(--font-mono); font-size: 1.1rem; transition: 0.2s;
-            display: flex; justify-content: space-between;
-        }
-        .menu-btn:hover { border-color: var(--primary); color: #fff; background: rgba(0, 243, 255, 0.1); }
-        .menu-btn.start { border-color: var(--safe); color: var(--safe); font-weight: bold; text-align: center; justify-content: center; margin-top: 20px; }
-        .menu-btn.start:hover { background: var(--safe); color: black; box-shadow: 0 0 20px var(--safe); }
+        .crt-flicker { animation: flicker 0.15s infinite; pointer-events: none; position: fixed; inset: 0; z-index: 901; opacity: 0.03; background: white; display: none; }
+        @keyframes flicker { 0% { opacity: 0.02; } 50% { opacity: 0.05; } 100% { opacity: 0.02; } }
 
-        /* --- OYUN ARAYÜZÜ --- */
-        #game-interface {
-            display: grid; grid-template-columns: 280px 1fr 300px; gap: 15px;
-            width: 98%; height: 95%; max-width: 1800px;
+        /* --- 3. UI LAYOUT --- */
+        #app {
+            display: grid; grid-template-columns: 300px 1fr 350px; gap: 15px;
+            width: 98vw; height: 96vh; max-width: 1920px; position: relative; z-index: 10;
         }
 
         .panel {
-            background: var(--panel); border: 1px solid #333; border-radius: 4px;
-            display: flex; flex-direction: column; overflow: hidden; position: relative;
-            box-shadow: 0 0 20px rgba(0,0,0,0.5);
+            background: var(--glass-panel); border: 1px solid var(--border-color);
+            border-radius: 4px; display: flex; flex-direction: column; overflow: hidden;
+            box-shadow: 0 0 20px rgba(0,0,0,0.8); backdrop-filter: blur(8px);
+            position: relative; transition: border-color 0.3s;
         }
-        .panel-header {
-            padding: 15px; background: rgba(255,255,255,0.03); border-bottom: 1px solid #333;
-            font-weight: bold; color: var(--primary); font-size: 0.9rem; letter-spacing: 1px;
-            display: flex; justify-content: space-between;
-        }
-        .scroll-area { overflow-y: auto; flex-grow: 1; padding: 10px; }
-
-        /* LİSTE ELEMANLARI */
-        .list-item {
-            background: rgba(255,255,255,0.02); border: 1px solid #333; padding: 12px;
-            margin-bottom: 8px; cursor: pointer; transition: 0.2s; display: flex; align-items: center;
-        }
-        .list-item:hover { border-color: var(--primary); background: rgba(0, 243, 255, 0.05); }
-        .list-item.locked { opacity: 0.4; pointer-events: none; filter: grayscale(1); }
-        .list-item.active { border-color: var(--safe); box-shadow: inset 3px 0 0 var(--safe); }
+        .panel:hover { border-color: rgba(0, 243, 255, 0.3); }
         
-        .item-icon { font-size: 1.5rem; width: 40px; text-align: center; margin-right: 10px; }
-        .item-details { flex-grow: 1; }
-        .item-title { font-weight: bold; font-size: 0.9rem; color: white; }
-        .item-sub { font-size: 0.75rem; color: #888; display: flex; justify-content: space-between; margin-top: 3px; }
+        .p-header {
+            padding: 12px 15px; background: rgba(0,0,0,0.4); border-bottom: 1px solid var(--border-color);
+            font-family: var(--font-mono); font-size: 0.85rem; letter-spacing: 1px; color: var(--c-cyan);
+            display: flex; justify-content: space-between; align-items: center; text-transform: uppercase;
+        }
+        .p-content { flex-grow: 1; overflow-y: auto; padding: 10px; position: relative; }
 
-        /* ORTA PANEL (DASHBOARD) */
-        .dashboard { align-items: center; justify-content: center; position: relative; }
+        /* --- 4. LEFT PANEL: TARGETS & STATS --- */
+        .stat-row { display: flex; justify-content: space-between; margin-bottom: 8px; font-size: 0.8rem; border-bottom: 1px dashed #333; padding-bottom: 4px; }
+        .stat-label { color: #889; }
+        .stat-val { font-family: var(--font-mono); font-weight: bold; color: #fff; }
         
-        .hud {
+        .target-card {
+            background: rgba(255,255,255,0.03); border: 1px solid #333; padding: 12px;
+            margin-bottom: 8px; cursor: pointer; transition: all 0.2s; position: relative;
+            overflow: hidden;
+        }
+        .target-card:hover { background: rgba(0, 243, 255, 0.05); border-color: var(--c-cyan); transform: translateX(5px); }
+        .target-card.locked { opacity: 0.4; filter: grayscale(1); pointer-events: none; }
+        .target-card.active { border-color: var(--c-green); box-shadow: inset 3px 0 0 var(--c-green); background: rgba(0, 255, 102, 0.05); }
+        
+        .t-name { font-weight: bold; font-size: 0.95rem; color: #eee; }
+        .t-meta { display: flex; justify-content: space-between; font-size: 0.75rem; color: #aaa; margin-top: 5px; font-family: var(--font-mono); }
+
+        /* --- 5. CENTER PANEL: THE DECK --- */
+        #deck-view { display: flex; flex-direction: column; height: 100%; align-items: center; justify-content: center; position: relative; }
+        
+        /* Top HUD */
+        .hud-grid {
             position: absolute; top: 0; left: 0; width: 100%; padding: 20px;
-            display: flex; justify-content: space-between; pointer-events: none;
+            display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; text-align: center;
         }
-        .hud-box { text-align: center; }
-        .hud-val { font-family: var(--font-mono); font-size: 1.4rem; font-weight: bold; }
+        .hud-box { background: rgba(0,0,0,0.5); padding: 8px; border-radius: 4px; border: 1px solid #333; }
+        .hud-title { font-size: 0.7rem; color: #888; letter-spacing: 1px; margin-bottom: 2px; }
+        .hud-number { font-family: var(--font-mono); font-size: 1.2rem; font-weight: bold; }
 
-        /* AKSİYON BUTONLARI */
-        .controls { display: flex; gap: 40px; align-items: center; margin-bottom: 30px; }
-
-        #hack-btn {
-            width: 220px; height: 220px; border-radius: 50%;
-            border: 4px solid var(--primary);
-            background: radial-gradient(circle, rgba(0, 243, 255, 0.1), rgba(0,0,0,0.8));
-            box-shadow: 0 0 30px rgba(0, 243, 255, 0.2);
+        /* The Core (Hack Button) */
+        #neural-core {
+            width: 260px; height: 260px; border-radius: 50%;
+            border: 2px solid var(--c-cyan);
+            background: radial-gradient(circle, rgba(0, 243, 255, 0.05) 0%, rgba(0,0,0,0.95) 70%);
+            box-shadow: 0 0 40px rgba(0, 243, 255, 0.15), inset 0 0 20px rgba(0, 243, 255, 0.1);
             display: flex; flex-direction: column; justify-content: center; align-items: center;
-            cursor: pointer; transition: 0.1s; position: relative; z-index: 5;
+            cursor: pointer; transition: transform 0.05s, box-shadow 0.2s;
+            position: relative; z-index: 20;
         }
-        #hack-btn:active { transform: scale(0.95); border-color: white; box-shadow: 0 0 50px var(--primary); }
-        #hack-btn.danger { border-color: var(--danger); animation: shake 0.3s infinite; }
+        #neural-core:hover { box-shadow: 0 0 60px rgba(0, 243, 255, 0.3); border-color: #fff; }
+        #neural-core:active { transform: scale(0.96); }
+        #neural-core.overheat { border-color: var(--c-danger); box-shadow: 0 0 50px var(--c-danger); animation: shake 0.3s infinite; }
+        
+        .core-icon { font-size: 4rem; margin-bottom: 5px; filter: drop-shadow(0 0 10px var(--c-cyan)); pointer-events: none; }
+        .core-label { font-family: var(--font-mono); font-size: 0.8rem; letter-spacing: 3px; color: var(--c-cyan); pointer-events: none; }
 
-        #cool-btn {
-            width: 100px; height: 100px; border-radius: 10px;
-            border: 2px solid var(--safe);
-            background: radial-gradient(circle, rgba(0, 255, 136, 0.1), rgba(0,0,0,0.8));
-            display: flex; flex-direction: column; justify-content: center; align-items: center;
-            cursor: pointer; transition: 0.1s; box-shadow: 0 0 15px rgba(0, 255, 136, 0.2);
-        }
-        #cool-btn:active { transform: translateY(5px); background: var(--safe); color: black; }
-
-        /* BARLAR */
-        .bars { width: 450px; }
+        /* Heat & Risk Bars */
+        .bars-container { width: 450px; margin-top: 40px; position: relative; }
         .bar-wrap { margin-bottom: 15px; }
-        .bar-info { display: flex; justify-content: space-between; font-size: 0.8rem; margin-bottom: 5px; font-weight: bold; }
-        .track { height: 12px; background: #000; border: 1px solid #444; border-radius: 6px; overflow: hidden; }
-        .fill { height: 100%; transition: width 0.1s linear; }
+        .bar-header { display: flex; justify-content: space-between; font-size: 0.75rem; margin-bottom: 4px; font-weight: bold; text-transform: uppercase; }
+        .bar-track { height: 8px; background: #111; border: 1px solid #444; border-radius: 4px; overflow: hidden; }
+        .bar-fill { height: 100%; width: 0%; transition: width 0.1s linear; }
 
-        #strikes-cont { margin-top: 10px; display: flex; justify-content: center; gap: 5px; }
-        .strike { width: 10px; height: 10px; background: #333; border-radius: 50%; border: 1px solid #555; }
-        .strike.on { background: var(--danger); box-shadow: 0 0 5px var(--danger); border-color: #fff; }
+        /* Skills (Programs) */
+        .skills-rack {
+            display: flex; gap: 15px; margin-top: 30px;
+        }
+        .skill-slot {
+            width: 70px; height: 70px; background: #0e1218; border: 1px solid #333;
+            border-radius: 6px; display: flex; flex-direction: column; align-items: center; justify-content: center;
+            cursor: pointer; transition: 0.2s; position: relative; overflow: hidden;
+        }
+        .skill-slot:hover { border-color: var(--c-gold); background: rgba(255, 204, 0, 0.05); }
+        .skill-slot.cooldown { opacity: 0.5; cursor: not-allowed; border-color: var(--c-danger); }
+        .skill-key { position: absolute; top: 2px; left: 4px; font-size: 0.6rem; color: #666; font-family: var(--font-mono); }
+        .skill-icon { font-size: 1.5rem; margin-bottom: 2px; }
+        .skill-name { font-size: 0.6rem; color: #aaa; text-align: center; line-height: 1; }
+        .skill-overlay { position: absolute; bottom: 0; left: 0; width: 100%; height: 0%; background: rgba(255,0,0,0.3); transition: height 0.1s linear; }
 
-        /* BOOT EKRANI */
+        /* --- 6. RIGHT PANEL: MARKET & LOGS --- */
+        .tab-nav { display: flex; border-bottom: 1px solid #333; margin-bottom: 10px; }
+        .tab-btn {
+            flex-grow: 1; padding: 10px; text-align: center; cursor: pointer; font-size: 0.8rem;
+            background: rgba(0,0,0,0.2); color: #888; transition: 0.2s;
+        }
+        .tab-btn.active { background: rgba(0, 243, 255, 0.1); color: var(--c-cyan); border-bottom: 2px solid var(--c-cyan); }
+
+        .shop-item {
+            display: flex; align-items: center; padding: 12px; border: 1px solid #333;
+            background: rgba(255,255,255,0.02); margin-bottom: 8px; cursor: pointer; transition: 0.2s;
+        }
+        .shop-item:hover { border-color: var(--c-gold); }
+        .shop-item.disabled { opacity: 0.4; pointer-events: none; filter: grayscale(1); }
+        
+        .item-icon { width: 40px; height: 40px; background: #000; border: 1px solid #333; display: flex; justify-content: center; align-items: center; font-size: 1.2rem; margin-right: 12px; }
+        .item-details { flex-grow: 1; }
+        .item-title { font-size: 0.85rem; font-weight: bold; color: #eee; }
+        .item-desc { font-size: 0.7rem; color: #777; margin-top: 2px; }
+        .item-price { font-family: var(--font-mono); color: var(--c-gold); font-size: 0.85rem; font-weight: bold; }
+
+        #console-log {
+            height: 100%; overflow-y: auto; font-family: 'Consolas', monospace; font-size: 0.75rem;
+            display: flex; flex-direction: column-reverse; padding: 5px;
+        }
+        .log-entry { margin-bottom: 4px; padding-left: 8px; border-left: 2px solid #333; opacity: 0; animation: fadeIn 0.3s forwards; }
+        .log-info { border-color: var(--c-cyan); color: #ccc; }
+        .log-warn { border-color: var(--c-gold); color: var(--c-gold); }
+        .log-err { border-color: var(--c-danger); color: var(--c-danger); }
+        .log-success { border-color: var(--c-green); color: var(--c-green); }
+
+        /* --- 7. OVERLAYS & MODALS --- */
         #boot-screen {
-            position: fixed; inset: 0; background: #000; z-index: 9999;
-            display: none; padding: 20px; font-family: 'Consolas', monospace; color: #ccc;
-            flex-direction: column; justify-content: flex-start;
+            position: fixed; inset: 0; background: #000; z-index: 10000;
+            display: flex; flex-direction: column; justify-content: center; align-items: center;
+            font-family: var(--font-mono);
         }
-        .boot-line { margin-bottom: 2px; }
-
-        /* ALARM EFEKTİ */
-        #alert-layer {
-            position: absolute; inset: 0; pointer-events: none; z-index: 50;
-            background: radial-gradient(circle, transparent 60%, rgba(255,0,0,0.4) 100%);
-            opacity: 0; transition: opacity 0.3s;
+        .boot-text { color: var(--c-cyan); margin-bottom: 10px; text-shadow: 0 0 10px var(--c-cyan); }
+        
+        #game-over-modal {
+            position: fixed; inset: 0; background: rgba(0,0,0,0.95); z-index: 5000;
+            display: none; align-items: center; justify-content: center; flex-direction: column;
         }
+        .glitch-text { font-size: 4rem; font-weight: 900; color: var(--c-danger); text-shadow: 2px 2px var(--c-cyan); animation: shake 0.5s infinite; }
+        
+        .start-btn {
+            margin-top: 30px; padding: 15px 50px; background: transparent; border: 2px solid var(--c-cyan);
+            color: var(--c-cyan); font-size: 1.2rem; cursor: pointer; transition: 0.3s; font-family: var(--font-mono);
+            font-weight: bold; letter-spacing: 2px;
+        }
+        .start-btn:hover { background: var(--c-cyan); color: #000; box-shadow: 0 0 30px var(--c-cyan); }
 
-        /* ANIMASYONLAR */
+        /* --- ANIMATIONS --- */
+        @keyframes fadeIn { to { opacity: 1; } }
         @keyframes shake { 0% { transform: translate(1px, 1px) } 25% { transform: translate(-2px, -2px) } 75% { transform: translate(-1px, 2px) } }
         
-        .particle {
-            position: absolute; pointer-events: none; animation: floatUp 1s forwards;
-            font-weight: bold; font-size: 1.2rem; z-index: 99; text-shadow: 0 0 5px black;
+        .float-txt {
+            position: absolute; font-weight: bold; font-family: var(--font-mono); pointer-events: none;
+            animation: floatUp 1s forwards; z-index: 1000; text-shadow: 0 0 5px black;
         }
-        @keyframes floatUp { 0% { opacity:1; transform:translateY(0); } 100% { opacity:0; transform:translateY(-60px); } }
+        @keyframes floatUp { 0% { opacity:1; transform:translateY(0) scale(1); } 100% { opacity:0; transform:translateY(-60px) scale(1.2); } }
 
-        @media (max-width: 900px) {
-            #game-interface { grid-template-columns: 1fr; display: block; overflow-y: auto; }
-            .panel { margin-bottom: 20px; height: auto; min-height: 300px; }
-            .controls { flex-direction: column; gap: 20px; }
-            .bars { width: 90%; }
+        /* Mobile Adjustments */
+        @media (max-width: 1100px) {
+            #app { grid-template-columns: 1fr; grid-template-rows: auto 1fr auto; display: block; overflow-y: auto; }
+            .panel { margin-bottom: 15px; height: auto; min-height: 300px; }
+            #neural-core { width: 200px; height: 200px; }
+            .bars-container { width: 90%; }
         }
     </style>
 </head>
 <body>
 
-    <div class="bg-grid"></div>
+    <canvas id="bg-canvas"></canvas>
     <div class="scanlines"></div>
+    <div class="crt-flicker"></div>
 
-    <div id="bios-screen" class="screen active">
-        <div class="bios-container">
-            <div class="bios-title">SYSTEM_SHOCK BIOS</div>
-            <div style="text-align: center; margin-bottom: 20px; color: var(--warn); font-family: var(--font-mono);">
-                LEGACY POINT (LP): <span id="lp-display">0</span>
-            </div>
-            
-            <div id="perma-shop">
-                </div>
-
-            <button class="menu-btn start" onclick="game.startRun()">BAĞLANTIYI BAŞLAT</button>
-        </div>
+    <div id="boot-screen">
+        <div style="font-size: 3rem; font-weight: bold; color: #fff; margin-bottom: 20px;">NEURO_LINK v9.0</div>
+        <div id="boot-log" style="color: #666; font-size: 0.9rem; margin-bottom: 30px; height: 100px; overflow: hidden; width: 400px; text-align: left;"></div>
+        <button class="start-btn" onclick="Game.bootSequence()">BAĞLANTIYI KUR</button>
     </div>
 
-    <div id="boot-screen"></div>
+    <div id="game-over-modal">
+        <div class="glitch-text">SİSTEM ÇÖKTÜ</div>
+        <div style="margin-top: 20px; font-family: var(--font-mono); color: #fff;">
+            TOPLAM VERİ: <span id="end-data" style="color:var(--c-cyan)">0</span> TB<br>
+            TOPLAM KAZANÇ: <span id="end-money" style="color:var(--c-gold)">0</span> ₿
+        </div>
+        <button class="start-btn" onclick="location.reload()">YENİDEN BAŞLAT</button>
+    </div>
 
-    <div id="game-interface" class="screen">
-        <div id="alert-layer"></div>
+    <div id="app" style="opacity: 0; transition: opacity 1s;">
+        
+        <div class="panel">
+            <div class="p-header">
+                <span>AĞ HARİTASI</span>
+                <span>SEVİYE <span id="lvl-disp">1</span></span>
+            </div>
+            <div class="p-content" id="target-list">
+                </div>
+            <div style="padding: 10px; border-top: 1px solid #333; background: rgba(0,0,0,0.5);">
+                <div class="stat-row"><span class="stat-label">İŞLEMCİ GÜCÜ</span><span class="stat-val" id="stat-power">0 GHz</span></div>
+                <div class="stat-row"><span class="stat-label">RAM KAPASİTESİ</span><span class="stat-val" id="stat-ram">0 GB</span></div>
+                <div class="stat-row"><span class="stat-label">SOĞUTMA</span><span class="stat-val" id="stat-cool">0 T/s</span></div>
+            </div>
+        </div>
+
+        <div class="panel" style="border:none; background:transparent; box-shadow:none;">
+            <div id="deck-view">
+                
+                <div class="hud-grid">
+                    <div class="hud-box">
+                        <div class="hud-title">BAKİYE</div>
+                        <div class="hud-number" style="color:var(--c-gold)"><span id="money-disp">0</span> ₿</div>
+                    </div>
+                    <div class="hud-box">
+                        <div class="hud-title">VERİ</div>
+                        <div class="hud-number" style="color:var(--c-cyan)"><span id="data-disp">0</span> TB</div>
+                    </div>
+                    <div class="hud-box">
+                        <div class="hud-title">ÇARPAN</div>
+                        <div class="hud-number" style="color:var(--c-green)">x<span id="multi-disp">1.0</span></div>
+                    </div>
+                </div>
+
+                <div id="neural-core" onmousedown="Game.hack(event)">
+                    <div class="core-icon">🧠</div>
+                    <div class="core-label">NEURAL INTERFACE</div>
+                </div>
+
+                <div class="bars-container">
+                    <div class="bar-wrap">
+                        <div class="bar-header">
+                            <span style="color:var(--c-cyan)">SIZMA (<span id="breach-val">0</span>%)</span>
+                        </div>
+                        <div class="bar-track"><div id="bar-breach" class="bar-fill" style="background:var(--c-cyan); box-shadow:0 0 10px var(--c-cyan);"></div></div>
+                    </div>
+                    
+                    <div class="bar-wrap">
+                        <div class="bar-header">
+                            <span style="color:var(--c-danger)">AĞ GÜRÜLTÜSÜ / RİSK (<span id="risk-val">0</span>%)</span>
+                        </div>
+                        <div class="bar-track"><div id="bar-risk" class="bar-fill" style="background:var(--c-danger);"></div></div>
+                    </div>
+
+                    <div class="bar-wrap">
+                        <div class="bar-header">
+                            <span style="color:var(--c-purple)">CPU ISISI (<span id="heat-val">0</span>%)</span>
+                        </div>
+                        <div class="bar-track"><div id="bar-heat" class="bar-fill" style="background:var(--c-purple);"></div></div>
+                    </div>
+                </div>
+
+                <div class="skills-rack">
+                    <div class="skill-slot" id="skill-q" onclick="Game.useSkill('brute')">
+                        <div class="skill-key">Q</div>
+                        <div class="skill-icon">⚡</div>
+                        <div class="skill-name">BRUTE FORCE</div>
+                        <div class="skill-overlay" id="cd-q"></div>
+                    </div>
+                    <div class="skill-slot" id="skill-w" onclick="Game.useSkill('worm')">
+                        <div class="skill-key">W</div>
+                        <div class="skill-icon">🦠</div>
+                        <div class="skill-name">DATA WORM</div>
+                        <div class="skill-overlay" id="cd-w"></div>
+                    </div>
+                    <div class="skill-slot" id="skill-e" onclick="Game.useSkill('ghost')">
+                        <div class="skill-key">E</div>
+                        <div class="skill-icon">👻</div>
+                        <div class="skill-name">GHOST VPN</div>
+                        <div class="skill-overlay" id="cd-e"></div>
+                    </div>
+                    <div class="skill-slot" id="skill-r" onclick="Game.useSkill('flush')">
+                        <div class="skill-key">R</div>
+                        <div class="skill-icon">❄️</div>
+                        <div class="skill-name">COOLANT</div>
+                        <div class="skill-overlay" id="cd-r"></div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
 
         <div class="panel">
-            <div class="panel-header">
-                <span>HEDEF SİSTEMLER</span>
-                <span style="color:var(--safe)">SEVİYE <span id="run-lvl">1</span></span>
-            </div>
-            <div class="scroll-area" id="target-list"></div>
-        </div>
-
-        <div class="panel dashboard">
-            <div class="hud">
-                <div class="hud-box">
-                    <div style="font-size:0.8rem; color:#888;">ZAMAN ÇARPANI</div>
-                    <div class="hud-val" style="color:var(--primary);">x<span id="multi-display">1.0</span></div>
-                </div>
-                <div class="hud-box">
-                    <div style="font-size:0.8rem; color:#888;">KRİPTO VARLIK</div>
-                    <div class="hud-val" style="color:var(--warn);"><span id="money-display">0</span> ₿</div>
+            <div class="p-header">
+                <div class="tab-nav" style="margin:0; border:none; width:100%;">
+                    <div class="tab-btn active" onclick="UI.switchTab('market')">MARKET</div>
+                    <div class="tab-btn" onclick="UI.switchTab('logs')">KONSOL</div>
                 </div>
             </div>
-
-            <div class="controls">
-                <div id="hack-btn" onmousedown="game.actionHack(event)">
-                    <div style="font-size:3rem; pointer-events:none;">☠</div>
-                    <div style="font-weight:bold; letter-spacing:2px; pointer-events:none;">SALDIR</div>
+            
+            <div class="p-content" id="tab-market">
                 </div>
-                
-                <div id="cool-btn" onmousedown="game.actionCool(event)">
-                    <div style="font-size:2rem; pointer-events:none;">❄️</div>
-                    <div style="font-size:0.7rem; font-weight:bold; margin-top:5px; pointer-events:none;">MANUEL<br>SOĞUTMA</div>
-                </div>
-            </div>
-
-            <div class="bars">
-                <div class="bar-wrap">
-                    <div class="bar-info"><span style="color:var(--primary)">VERİ SIZINTISI</span><span id="breach-txt">0%</span></div>
-                    <div class="track"><div id="breach-bar" class="fill" style="background:var(--primary); box-shadow:0 0 10px var(--primary);"></div></div>
-                </div>
-                <div class="bar-wrap">
-                    <div class="bar-info"><span style="color:var(--danger)">SİSTEM ISISI (RİSK)</span><span id="risk-txt">0%</span></div>
-                    <div class="track"><div id="risk-bar" class="fill" style="background:var(--danger);"></div></div>
-                </div>
-                
-                <div style="text-align:center; font-size:0.8rem; color:#888; margin-top:10px;">KALAN HAKLAR (STRIKES)</div>
-                <div id="strikes-cont"></div>
+            
+            <div class="p-content" id="tab-logs" style="display:none; background:#000;">
+                <div id="console-log"></div>
             </div>
         </div>
 
-        <div class="panel">
-            <div class="panel-header">
-                <span>KARABORSA</span>
-                <span id="passive-display" style="font-size:0.8rem; color:#aaa;">0/sn</span>
-            </div>
-            <div class="scroll-area" id="shop-list"></div>
-        </div>
     </div>
 
     <script>
-        /* --- SES SİSTEMİ --- */
-        const audio = {
-            ctx: null,
+        /* --- 1. CONFIG & DATA --- */
+        const CONFIG = {
+            fps: 60,
+            heatDecay: 0.2, // Passive cooling
+            riskDecay: 0.05, // Passive stealth
+            baseMulti: 1.0,
+            multiInc: 0.1, // Multiplier increase per 10s
+            maxHeat: 100,
+            maxRisk: 100
+        };
+
+        const TARGETS = [
+            { id: 0, name: "Localhost:8080", sec: 1.0, hp: 200, reward: 50, req: 1, type: "PERSONAL" },
+            { id: 1, name: "StarBux_WiFi", sec: 1.5, hp: 600, reward: 120, req: 2, type: "PUBLIC" },
+            { id: 2, name: "Metro_Grid_v4", sec: 2.2, hp: 1500, reward: 350, req: 3, type: "INFRA" },
+            { id: 3, name: "Corp_Data_Center", sec: 3.5, hp: 4000, reward: 1000, req: 5, type: "CORP" },
+            { id: 4, name: "Gov_Black_Box", sec: 5.0, hp: 10000, reward: 3000, req: 8, type: "GOV" },
+            { id: 5, name: "Orbital_Sat_Link", sec: 8.0, hp: 25000, reward: 10000, req: 12, type: "MILITARY" },
+            { id: 6, name: "AI_SINGULARITY", sec: 12.0, hp: 100000, reward: 50000, req: 20, type: "GOD" }
+        ];
+
+        const UPGRADES = [
+            { id: 'cpu', name: 'Quantum CPU', desc: 'Click Power +2', cost: 100, mult: 1.5, type: 'hardware', icon: '💎' },
+            { id: 'ram', name: 'Expanded RAM', desc: 'Cooldown Reduction', cost: 300, mult: 1.6, type: 'hardware', icon: '💾' },
+            { id: 'cool', name: 'Liquid Nitro', desc: 'Passive Cooling ++', cost: 200, mult: 1.5, type: 'hardware', icon: '❄️' },
+            { id: 'bot', name: 'Spider Bot', desc: 'Auto Hack / sec', cost: 500, mult: 1.4, type: 'software', icon: '🕷️' },
+            { id: 'mine', name: 'Crypto Miner', desc: 'Passive Income', cost: 800, mult: 1.4, type: 'software', icon: '⛏️' }
+        ];
+
+        /* --- 2. AUDIO ENGINE (Synthesizer) --- */
+        class AudioController {
+            constructor() {
+                this.ctx = null;
+                this.muted = false;
+            }
             init() {
                 if(!this.ctx) this.ctx = new (window.AudioContext || window.webkitAudioContext)();
-                if(this.ctx.state === 'suspended') this.ctx.resume();
-            },
-            play(freq, type, dur, vol=0.1, slide=0) {
-                if(!this.ctx) return;
+            }
+            playTone(freq, type, dur, vol=0.1, slide=0) {
+                if(!this.ctx || this.muted) return;
                 const osc = this.ctx.createOscillator();
                 const gain = this.ctx.createGain();
                 osc.type = type;
                 osc.frequency.setValueAtTime(freq, this.ctx.currentTime);
                 if(slide) osc.frequency.linearRampToValueAtTime(freq+slide, this.ctx.currentTime+dur);
+                
                 gain.gain.setValueAtTime(vol, this.ctx.currentTime);
-                gain.gain.exponentialRampToValueAtTime(0.001, this.ctx.currentTime+dur);
+                gain.gain.exponentialRampToValueAtTime(0.001, this.ctx.currentTime + dur);
+                
                 osc.connect(gain); gain.connect(this.ctx.destination);
-                osc.start(); osc.stop(this.ctx.currentTime+dur);
-            },
-            bootSound() {
-                if(!this.ctx) return;
-                [261, 329, 392, 523].forEach((f, i) => setTimeout(() => this.play(f, 'sine', 1.5, 0.1), i*150));
-            },
-            sfx(name) {
-                if(!this.ctx) return;
-                if(name==='click') this.play(600+Math.random()*200, 'triangle', 0.1);
-                if(name==='cool') { // Noise burst
-                    const b = this.ctx.createBuffer(1, this.ctx.sampleRate*0.2, this.ctx.sampleRate);
-                    const d = b.getChannelData(0);
-                    for(let i=0; i<d.length; i++) d[i] = Math.random()*2-1;
-                    const s = this.ctx.createBufferSource(); s.buffer=b;
-                    const g = this.ctx.createGain(); g.gain.value=0.15;
-                    s.connect(g); g.connect(this.ctx.destination); s.start();
-                }
-                if(name==='money') this.play(1200, 'square', 0.2, 0.05);
-                if(name==='error') this.play(100, 'sawtooth', 0.5, 0.2, -50);
+                osc.start(); osc.stop(this.ctx.currentTime + dur);
             }
-        };
+            noise(dur) {
+                if(!this.ctx || this.muted) return;
+                const bSize = this.ctx.sampleRate * dur;
+                const buf = this.ctx.createBuffer(1, bSize, this.ctx.sampleRate);
+                const data = buf.getChannelData(0);
+                for(let i=0; i<bSize; i++) data[i] = Math.random()*2-1;
+                
+                const src = this.ctx.createBufferSource();
+                const gain = this.ctx.createGain();
+                src.buffer = buf;
+                gain.gain.value = 0.1;
+                src.connect(gain); gain.connect(this.ctx.destination);
+                src.start();
+            }
+            // SFX Presets
+            click() { this.playTone(800 + Math.random()*200, 'triangle', 0.1, 0.05); }
+            error() { this.playTone(150, 'sawtooth', 0.3, 0.2, -50); }
+            success() { this.playTone(1200, 'sine', 0.2, 0.1, 500); setTimeout(()=>this.playTone(1800,'square',0.3,0.05),100); }
+            skill() { this.playTone(400, 'square', 0.5, 0.1, -200); }
+            cool() { this.noise(0.3); }
+        }
 
-        /* --- VERİLER --- */
-        const TARGETS = [
-            { id: 0, name: "Ev Ağı", hp: 100, sec: 1.0, reward: 50, req: 1, icon: "🏠" },
-            { id: 1, name: "Kafe Wi-Fi", hp: 400, sec: 1.5, reward: 150, req: 2, icon: "☕" },
-            { id: 2, name: "ATM", hp: 1000, sec: 2.0, reward: 400, req: 3, icon: "🏧" },
-            { id: 3, name: "Trafik Sistemi", hp: 3000, sec: 3.0, reward: 1200, req: 5, icon: "🚦" },
-            { id: 4, name: "Şirket Sunucusu", hp: 8000, sec: 4.5, reward: 3000, req: 8, icon: "🏢" },
-            { id: 5, name: "Banka Kasası", hp: 20000, sec: 7.0, reward: 10000, req: 12, icon: "💰" },
-            { id: 6, name: "Askeri Uydu", hp: 50000, sec: 10.0, reward: 30000, req: 15, icon: "🛰️" }
-        ];
-
-        const UPGRADES = [
-            { id: 'cpu', name: 'CPU Overclock', desc: 'Tıklama Gücü', base: 50, mult: 1.5, icon: '⚡' },
-            { id: 'bot', name: 'Botnet Node', desc: 'Oto Hack (+Risk)', base: 200, mult: 1.4, icon: '🤖' },
-            { id: 'cool', name: 'Sıvı Soğutma', desc: 'Soğutma Gücü', base: 150, mult: 1.5, icon: '❄️' },
-            { id: 'mine', name: 'Kripto Rig', desc: 'Pasif Gelir', base: 500, mult: 1.4, icon: '⛏️' }
-        ];
-
-        const PERMA_UPGRADES = [
-            { id: 'p_money', name: 'Başlangıç Parası (+500)', cost: 1000, type: 'money', val: 500 },
-            { id: 'p_bot', name: 'Başlangıç Botu (Lvl 1)', cost: 2500, type: 'bot', val: 1 },
-            { id: 'p_click', name: 'Güçlü Tıklama (+5)', cost: 2000, type: 'click', val: 5 }
-        ];
-
-        /* --- OYUN MOTORU --- */
-        const game = {
-            meta: { lp: 0, unlocks: [] },
-            run: {
-                active: false,
-                money: 0, xp: 0, lvl: 1, targetId: 0,
-                breach: 0, risk: 0, strikes: 10, multiplier: 1.0,
-                stats: { click: 5, auto: 0, cool: 10, passive: 0 },
-                upgrades: { cpu:0, bot:0, cool:0, mine:0 }
-            },
-            intervals: [],
-
-            init() {
-                const s = localStorage.getItem('cyber_shock_v8');
-                if(s) this.meta = JSON.parse(s);
-                this.renderMetaShop();
-            },
-
-            saveMeta() {
-                localStorage.setItem('cyber_shock_v8', JSON.stringify(this.meta));
-                this.renderMetaShop();
-            },
-
-            renderMetaShop() {
-                document.getElementById('lp-display').innerText = this.meta.lp;
-                const list = document.getElementById('perma-shop');
-                list.innerHTML = "";
-                PERMA_UPGRADES.forEach(p => {
-                    const owned = this.meta.unlocks.includes(p.id);
-                    list.innerHTML += `
-                        <button class="menu-btn" onclick="game.buyPerma('${p.id}', ${p.cost})" ${owned?'disabled style="opacity:0.5"':''}>
-                            <span>${p.name}</span>
-                            <span>${owned ? 'ALINDI' : p.cost + ' LP'}</span>
-                        </button>
-                    `;
-                });
-            },
-
-            buyPerma(id, cost) {
-                if(this.meta.lp >= cost && !this.meta.unlocks.includes(id)) {
-                    this.meta.lp -= cost;
-                    this.meta.unlocks.push(id);
-                    this.saveMeta();
+        /* --- 3. PARTICLE ENGINE (Canvas) --- */
+        class ParticleSystem {
+            constructor() {
+                this.cvs = document.getElementById('bg-canvas');
+                this.ctx = this.cvs.getContext('2d');
+                this.particles = [];
+                this.resize();
+                window.addEventListener('resize', () => this.resize());
+            }
+            resize() {
+                this.cvs.width = window.innerWidth;
+                this.cvs.height = window.innerHeight;
+            }
+            spawn(x, y, color, count=5) {
+                for(let i=0; i<count; i++) {
+                    this.particles.push({
+                        x: x, y: y,
+                        vx: (Math.random()-0.5) * 10,
+                        vy: (Math.random()-0.5) * 10,
+                        life: 1.0,
+                        color: color,
+                        text: Math.random() > 0.5 ? '1' : '0'
+                    });
                 }
-            },
-
-            startRun() {
-                audio.init();
-                // Varsayılan Run Değerleri
-                this.run = {
-                    active: false, // Boot bitene kadar false
-                    money: 0, xp: 0, lvl: 1, targetId: 0,
-                    breach: 0, risk: 0, strikes: 10, multiplier: 1.0,
-                    stats: { click: 5, auto: 0, cool: 15, passive: 0 }, // Baz değerler
-                    upgrades: { cpu:0, bot:0, cool:0, mine:0 }
-                };
-
-                // Perma Bonusları Uygula
-                if(this.meta.unlocks.includes('p_money')) this.run.money += 500;
-                if(this.meta.unlocks.includes('p_bot')) { this.run.stats.auto += 5; this.run.upgrades.bot++; }
-                if(this.meta.unlocks.includes('p_click')) this.run.stats.click += 5;
-
-                document.getElementById('bios-screen').classList.remove('active');
-                this.playBootSequence(() => {
-                    document.getElementById('game-interface').classList.add('active');
-                    this.run.active = true;
-                    this.renderRunUI();
+            }
+            update() {
+                this.ctx.clearRect(0,0,this.cvs.width, this.cvs.height);
+                for(let i=this.particles.length-1; i>=0; i--) {
+                    let p = this.particles[i];
+                    p.x += p.vx; p.y += p.vy;
+                    p.life -= 0.02;
+                    p.vy += 0.2; // Gravity
                     
-                    // Döngüler
-                    this.intervals.push(setInterval(() => this.loop(), 1000/60));
-                    this.intervals.push(setInterval(() => this.increaseMulti(), 10000));
-                });
+                    this.ctx.globalAlpha = p.life;
+                    this.ctx.fillStyle = p.color;
+                    this.ctx.font = '12px monospace';
+                    this.ctx.fillText(p.text, p.x, p.y);
+                    
+                    if(p.life <= 0) this.particles.splice(i, 1);
+                }
+            }
+        }
+
+        /* --- 4. GAME LOGIC --- */
+        const Game = {
+            state: {
+                active: false,
+                money: 0,
+                data: 0,
+                level: 1,
+                targetId: 0,
+                breach: 0,
+                risk: 0,
+                heat: 0,
+                multiplier: 1.0,
+                xp: 0,
+                upgrades: { cpu:0, ram:0, cool:0, bot:0, mine:0 }
+            },
+            
+            stats: { // Derived from upgrades
+                power: 5,
+                cooling: 0.2, // Passive
+                venting: 25,  // Manual flush
+                auto: 0,
+                passive: 0,
+                stealth: 1.0
             },
 
-            playBootSequence(cb) {
-                const scr = document.getElementById('boot-screen');
-                scr.style.display = 'flex';
-                scr.innerHTML = '';
-                const lines = ["KERNEL INIT...", "MOUNTING VOLUMES...", "LOADING DRIVERS...", "SYSTEM READY."];
+            cooldowns: { q:0, w:0, e:0, r:0 }, // 0 to 100%
+            
+            audio: new AudioController(),
+            particles: new ParticleSystem(),
+            loopId: null,
+
+            // --- INITIALIZATION ---
+            bootSequence() {
+                const log = document.getElementById('boot-log');
+                const lines = [
+                    "BIOS CHECK... OK", "LOADING KERNEL... OK", "MOUNTING DRIVES...", 
+                    "CONNECTING TO NEURAL LINK...", "ESTABLISHING SECURE TUNNEL...", "SYSTEM READY."
+                ];
                 let i = 0;
                 const int = setInterval(() => {
-                    if(i < lines.length) {
-                        scr.innerHTML += `<div class="boot-line">> ${lines[i]}</div>`;
-                        i++;
-                    } else {
+                    log.innerHTML += `<div>> ${lines[i]}</div>`;
+                    log.scrollTop = log.scrollHeight;
+                    i++;
+                    if(i >= lines.length) {
                         clearInterval(int);
-                        audio.bootSound();
-                        setTimeout(() => { scr.style.display = 'none'; cb(); }, 1000);
+                        setTimeout(this.start.bind(this), 500);
                     }
-                }, 500);
+                }, 300);
             },
 
-            // --- OYUN DÖNGÜSÜ ---
+            start() {
+                this.audio.init();
+                document.getElementById('boot-screen').style.display = 'none';
+                document.getElementById('app').style.opacity = 1;
+                
+                this.state.active = true;
+                this.state.money = 100; // Starter cash
+                this.updateStats();
+                UI.renderTargets();
+                UI.renderShop();
+                UI.log("NEURAL LINK ESTABLISHED.", "log-success");
+
+                // Start Loop
+                this.loopId = setInterval(() => this.loop(), 1000/60);
+                
+                // Keyboard Bindings
+                window.addEventListener('keydown', (e) => {
+                    if(e.key.toLowerCase() === 'q') this.useSkill('brute');
+                    if(e.key.toLowerCase() === 'w') this.useSkill('worm');
+                    if(e.key.toLowerCase() === 'e') this.useSkill('ghost');
+                    if(e.key.toLowerCase() === 'r') this.useSkill('flush');
+                });
+
+                // Multiplier increase
+                setInterval(() => {
+                    if(this.state.active) {
+                        this.state.multiplier += CONFIG.multiInc;
+                        UI.log(`Zaman Çarpanı Arttı: x${this.state.multiplier.toFixed(1)}`, "log-info");
+                    }
+                }, 10000);
+            },
+
+            // --- MAIN LOOP ---
             loop() {
-                if(!this.run.active) return;
-                const dt = 1/60;
-
-                // Pasif Gelir
-                if(this.run.stats.passive > 0) this.run.money += (this.run.stats.passive * dt) * this.run.multiplier;
-
-                // Botlar (Risk üretir!)
-                if(this.run.stats.auto > 0) {
-                    this.run.breach += (this.run.stats.auto * dt) * this.run.multiplier;
-                    const t = TARGETS[this.run.targetId];
-                    // Botlar saniyede güvenlik seviyesinin %5'i kadar risk üretir
-                    this.run.risk += (this.run.stats.auto * 0.05 * t.sec * dt); 
+                if(!this.state.active) return;
+                
+                // 1. Passive Logic
+                if(this.stats.passive > 0) this.state.money += (this.stats.passive / 60) * this.state.multiplier;
+                if(this.stats.auto > 0) {
+                    this.state.breach += (this.stats.auto / 60) * this.state.multiplier;
+                    // Auto hack generates minor noise/heat
+                    this.state.heat += 0.05; 
+                    this.state.risk += 0.02;
                 }
 
-                // Check
-                this.checkState();
-                this.updateUI();
+                // 2. Cooling / Decay
+                if(this.state.heat > 0) this.state.heat -= this.stats.cooling;
+                if(this.state.heat < 0) this.state.heat = 0;
+                
+                if(this.state.risk > 0) this.state.risk -= CONFIG.riskDecay * this.stats.stealth;
+                if(this.state.risk < 0) this.state.risk = 0;
+
+                // 3. Cooldown Recovery
+                for(let k in this.cooldowns) {
+                    if(this.cooldowns[k] > 0) this.cooldowns[k] -= 0.5 + (this.state.upgrades.ram * 0.1); // RAM improves CDR
+                }
+
+                // 4. Update Visuals
+                this.particles.update();
+                UI.update();
+                this.checkWinCondition();
+                
+                // 5. Fail Condition
+                if(this.state.risk >= 100) this.gameOver("SİSTEM TARAFINDAN TESPİT EDİLDİNİZ.");
+                if(this.state.heat >= 100) this.overheat();
             },
 
-            increaseMulti() {
-                if(this.run.active) this.run.multiplier += 0.3;
+            // --- ACTIONS ---
+            hack(e) {
+                if(!this.state.active || this.state.heat >= 100) {
+                    this.audio.error();
+                    return;
+                }
+
+                const t = TARGETS[this.state.targetId];
+                
+                // Apply Breach
+                this.state.breach += this.stats.power * this.state.multiplier;
+                
+                // Generate Heat & Risk
+                this.state.heat += 4; // Flat heat per click
+                this.state.risk += (t.sec * 1.5) / this.stats.stealth;
+
+                // FX
+                this.audio.click();
+                this.particles.spawn(e.clientX, e.clientY, '#00f3ff');
+                
+                // Visual Recoil
+                const core = document.getElementById('neural-core');
+                core.style.transform = "scale(0.95)";
+                setTimeout(() => core.style.transform = "scale(1)", 50);
             },
 
-            // --- AKSİYONLAR ---
-            actionHack(e) {
-                if(!this.run.active) return;
-                const t = TARGETS[this.run.targetId];
+            useSkill(type) {
+                if(!this.state.active) return;
                 
-                this.run.breach += this.run.stats.click * this.run.multiplier;
-                this.run.risk += t.sec * 1.5; // Manuel tıklama ısıtır
+                // Check Cooldowns
+                let cdKey = '';
+                if(type === 'brute') cdKey = 'q';
+                if(type === 'worm') cdKey = 'w';
+                if(type === 'ghost') cdKey = 'e';
+                if(type === 'flush') cdKey = 'r';
 
-                audio.sfx('click');
-                this.spawnParticle(e.clientX, e.clientY, `+${Math.floor(this.run.stats.click)}`);
-                
-                // Buton Animasyonu
-                const btn = document.getElementById('hack-btn');
-                btn.style.transform = "scale(0.95)";
-                setTimeout(()=>btn.style.transform="scale(1)", 50);
+                if(this.cooldowns[cdKey] > 0) {
+                    this.audio.error(); return;
+                }
 
-                this.checkState();
+                this.audio.skill();
+                this.cooldowns[cdKey] = 100; // Reset CD to 100%
+
+                // Apply Effects
+                if(type === 'brute') {
+                    this.state.breach += this.stats.power * 20;
+                    this.state.heat += 30; // High heat cost
+                    UI.spawnFloat("BRUTE FORCE!", "#ff2a2a");
+                }
+                else if(type === 'worm') {
+                    // Temporary auto-hack boost could be implemented here, simple logic for now
+                    this.state.breach += 500;
+                    this.state.risk += 10;
+                    UI.spawnFloat("WORM UPLOADED", "#00ff66");
+                }
+                else if(type === 'ghost') {
+                    this.state.risk -= 30;
+                    if(this.state.risk < 0) this.state.risk = 0;
+                    UI.spawnFloat("LOGS CLEARED", "#bc13fe");
+                }
+                else if(type === 'flush') {
+                    this.state.heat -= this.stats.venting * 3; // Huge cooling
+                    if(this.state.heat < 0) this.state.heat = 0;
+                    this.audio.cool();
+                    UI.spawnFloat("COOLANT FLUSH", "#00f3ff");
+                }
             },
 
-            actionCool(e) {
-                if(!this.run.active || this.run.risk <= 0) return;
-                
-                this.run.risk -= this.run.stats.cool;
-                if(this.run.risk < 0) this.run.risk = 0;
-                
-                audio.sfx('cool');
-                const btn = document.getElementById('cool-btn');
-                btn.style.transform = "translateY(5px)";
-                setTimeout(()=>btn.style.transform="translateY(0)", 100);
+            overheat() {
+                this.state.heat = 100;
+                document.getElementById('neural-core').classList.add('overheat');
+                if(Math.random() > 0.9) this.audio.error();
+            },
+
+            checkWinCondition() {
+                const t = TARGETS[this.state.targetId];
+                if(this.state.breach >= t.hp) {
+                    this.state.breach = 0;
+                    
+                    // Rewards
+                    const cash = Math.floor(t.reward * this.state.multiplier);
+                    this.state.money += cash;
+                    this.state.data += t.req; // Data matches level req for simplicity
+                    
+                    this.audio.success();
+                    UI.log(`BAĞLANTI BAŞARILI: +${cash} ₿`, "log-success");
+                    UI.spawnFloat(`+${cash} ₿`, "#ffcc00");
+
+                    // Level Up Logic
+                    if(this.state.data >= this.state.level * 10) {
+                        this.state.level++;
+                        UI.log(`SEVİYE YÜKSELDİ: ${this.state.level}`, "log-info");
+                        UI.renderTargets();
+                    }
+                }
             },
 
             buy(id) {
-                const u = UPGRADES.find(x => x.id === id);
-                const cost = Math.floor(u.base * Math.pow(u.mult, this.run.upgrades[id]));
-                
-                if(this.run.money >= cost) {
-                    this.run.money -= cost;
-                    this.run.upgrades[id]++;
-                    
-                    if(id==='cpu') this.run.stats.click += 3;
-                    if(id==='bot') this.run.stats.auto += 5;
-                    if(id==='cool') this.run.stats.cool += 5;
-                    if(id==='mine') this.run.stats.passive += 15;
+                const item = UPGRADES.find(u => u.id === id);
+                const lvl = this.state.upgrades[id];
+                const cost = Math.floor(item.cost * Math.pow(item.mult, lvl));
 
-                    audio.sfx('money');
-                    this.renderRunUI();
+                if(this.state.money >= cost) {
+                    this.state.money -= cost;
+                    this.state.upgrades[id]++;
+                    this.updateStats();
+                    this.audio.success();
+                    UI.renderShop();
+                    UI.log(`${item.name} Yükseltildi (Lvl ${lvl+1})`, "log-info");
                 } else {
-                    audio.sfx('error');
+                    this.audio.error();
                 }
+            },
+
+            updateStats() {
+                // Calculate base stats from upgrades
+                this.stats.power = 5 + (this.state.upgrades.cpu * 3);
+                this.stats.cooling = 0.2 + (this.state.upgrades.cool * 0.1);
+                this.stats.auto = this.state.upgrades.bot * 5;
+                this.stats.passive = this.state.upgrades.mine * 10;
+                // RAM affects cooldown speed implicitly in loop
+                
+                // Update Sidebar Stats
+                document.getElementById('stat-power').innerText = (this.stats.power / 5).toFixed(1) + " GHz";
+                document.getElementById('stat-ram').innerText = (4 + this.state.upgrades.ram * 4) + " GB";
+                document.getElementById('stat-cool').innerText = this.stats.cooling.toFixed(1) + " T/s";
             },
 
             setTarget(id) {
-                this.run.targetId = id;
-                this.run.breach = 0;
-                this.run.risk = 0;
-                this.renderRunUI();
-            },
-
-            // --- MANTIK ---
-            checkState() {
-                const t = TARGETS[this.run.targetId];
-
-                // Başarı
-                if(this.run.breach >= t.hp) {
-                    this.run.breach = 0;
-                    this.run.money += Math.floor(t.reward * this.run.multiplier);
-                    this.run.xp += t.sec * 10;
-                    
-                    if(this.run.xp >= 100 * this.run.lvl) {
-                        this.run.lvl++;
-                        this.run.xp = 0;
-                        this.renderRunUI(); // Yeni hedefler açılabilir
-                    }
-                    audio.sfx('money');
+                if(this.state.level < TARGETS[id].req) {
+                    this.audio.error(); return;
                 }
-
-                // Çökme
-                if(this.run.risk >= 100) {
-                    this.triggerCrash();
-                }
+                this.state.targetId = id;
+                this.state.breach = 0;
+                this.state.risk = 0; // New target resets active trace? Optional design.
+                UI.renderTargets();
+                UI.log(`HEDEF: ${TARGETS[id].name}`, "log-info");
             },
 
-            triggerCrash() {
-                this.run.risk = 0;
-                this.run.strikes--;
-                this.run.multiplier = 1.0; // CEZA: Çarpan sıfırlanır
-                this.run.active = false;
-                audio.sfx('error');
-
-                if(this.run.strikes <= 0) {
-                    this.gameOver();
-                } else {
-                    // Mavi ekran / Reboot efekti
-                    this.playBootSequence(() => {
-                        this.run.active = true;
-                    });
-                }
-            },
-
-            gameOver() {
-                this.intervals.forEach(clearInterval);
-                this.intervals = [];
-                document.getElementById('game-interface').classList.remove('active');
-                
-                const lpGain = Math.floor(this.run.money / 100) + (this.run.lvl * 2);
-                this.meta.lp += lpGain;
-                this.saveMeta();
-
-                document.getElementById('bios-screen').classList.add('active');
-                alert(`BAĞLANTI KAYBEDİLDİ. TOPLAM LEGACY PUANI: +${lpGain}`);
-            },
-
-            // --- UI ---
-            renderRunUI() {
-                // Hedefler
-                const tList = document.getElementById('target-list');
-                tList.innerHTML = "";
-                TARGETS.forEach(t => {
-                    const locked = this.run.lvl < t.req;
-                    const active = this.run.targetId === t.id;
-                    tList.innerHTML += `
-                        <div class="list-item ${locked?'locked':''} ${active?'active':''}"
-                             onclick="${!locked ? `game.setTarget(${t.id})` : ''}">
-                            <div class="item-icon">${t.icon}</div>
-                            <div class="item-details">
-                                <div class="item-title">${t.name}</div>
-                                <div class="item-sub"><span>GÜVENLİK: x${t.sec}</span><span>${t.reward} ₿</span></div>
-                            </div>
-                        </div>
-                    `;
-                });
-
-                // Market
-                const sList = document.getElementById('shop-list');
-                sList.innerHTML = "";
-                UPGRADES.forEach(u => {
-                    const cost = Math.floor(u.base * Math.pow(u.mult, this.run.upgrades[u.id]));
-                    const canBuy = this.run.money >= cost;
-                    sList.innerHTML += `
-                        <div class="list-item" style="opacity:${canBuy?1:0.5}" onclick="game.buy('${u.id}')">
-                            <div class="item-icon">${u.icon}</div>
-                            <div class="item-details">
-                                <div class="item-title">${u.name} (Lvl ${this.run.upgrades[u.id]})</div>
-                                <div class="item-sub"><span>${u.desc}</span><span style="color:${canBuy?'#ffcc00':'#555'}">${cost} ₿</span></div>
-                            </div>
-                        </div>
-                    `;
-                });
-
-                // Strikes
-                const sBox = document.getElementById('strikes-cont');
-                sBox.innerHTML = "";
-                for(let i=0; i<10; i++) {
-                    sBox.innerHTML += `<div class="strike ${i<this.run.strikes?'on':''}"></div>`;
-                }
-            },
-
-            updateUI() {
-                document.getElementById('money-display').innerText = Math.floor(this.run.money).toLocaleString();
-                document.getElementById('multi-display').innerText = this.run.multiplier.toFixed(1);
-                document.getElementById('lvl-display').innerText = this.run.lvl;
-                document.getElementById('passive-display').innerText = (this.run.stats.passive * this.run.multiplier).toFixed(1) + "/sn";
-
-                const t = TARGETS[this.run.targetId];
-                const bPct = Math.min(100, (this.run.breach / t.hp) * 100);
-                document.getElementById('breach-bar').style.width = bPct + "%";
-                document.getElementById('breach-txt').innerText = Math.floor(bPct) + "%";
-
-                document.getElementById('risk-bar').style.width = Math.min(100, this.run.risk) + "%";
-                document.getElementById('risk-txt').innerText = Math.floor(this.run.risk) + "%";
-
-                // Uyarı Efekti
-                const alert = document.getElementById('alert-layer');
-                if(this.run.risk > 80) alert.style.opacity = (Math.sin(Date.now()/100)+1)/2 * 0.5;
-                else alert.style.opacity = 0;
-            },
-
-            spawnParticle(x, y, txt) {
-                const el = document.createElement('div');
-                el.className = 'particle';
-                el.innerText = txt;
-                el.style.left = (x-10)+'px'; el.style.top = (y-20)+'px'; el.style.color = 'var(--primary)';
-                document.body.appendChild(el);
-                setTimeout(()=>el.remove(), 1000);
+            gameOver(reason) {
+                this.state.active = false;
+                clearInterval(this.loopId);
+                document.getElementById('game-over-modal').style.display = 'flex';
+                document.getElementById('end-data').innerText = Math.floor(this.state.data);
+                document.getElementById('end-money').innerText = Math.floor(this.state.money);
+                this.audio.error();
             }
         };
 
-        game.init();
+        /* --- 5. UI CONTROLLER --- */
+        const UI = {
+            update() {
+                // Texts
+                document.getElementById('money-disp').innerText = Math.floor(Game.state.money).toLocaleString();
+                document.getElementById('data-disp').innerText = Game.state.data;
+                document.getElementById('multi-disp').innerText = Game.state.multiplier.toFixed(1);
+                
+                // Bars
+                const t = TARGETS[Game.state.targetId];
+                const bPct = Math.min(100, (Game.state.breach / t.hp) * 100);
+                document.getElementById('bar-breach').style.width = bPct + "%";
+                document.getElementById('breach-val').innerText = Math.floor(bPct);
+
+                document.getElementById('bar-risk').style.width = Math.min(100, Game.state.risk) + "%";
+                document.getElementById('risk-val').innerText = Math.floor(Game.state.risk);
+
+                document.getElementById('bar-heat').style.width = Math.min(100, Game.state.heat) + "%";
+                document.getElementById('heat-val').innerText = Math.floor(Game.state.heat);
+
+                // Overheat removal
+                if(Game.state.heat < 100) document.getElementById('neural-core').classList.remove('overheat');
+
+                // Skill Overlays (Cooldowns)
+                ['q','w','e','r'].forEach(k => {
+                    const cd = Game.cooldowns[k];
+                    document.getElementById(`cd-${k}`).style.height = cd + "%";
+                    const slot = document.getElementById(`skill-${k}`);
+                    if(cd > 0) slot.classList.add('cooldown');
+                    else slot.classList.remove('cooldown');
+                });
+            },
+
+            renderTargets() {
+                const list = document.getElementById('target-list');
+                list.innerHTML = "";
+                TARGETS.forEach(t => {
+                    const locked = Game.state.level < t.req;
+                    const active = Game.state.targetId === t.id;
+                    list.innerHTML += `
+                        <div class="target-card ${locked?'locked':''} ${active?'active':''}" onclick="Game.setTarget(${t.id})">
+                            <div class="t-name">${t.name}</div>
+                            <div class="t-meta">
+                                <span>SEC: x${t.sec}</span>
+                                <span style="color:var(--c-gold)">${t.reward} ₿</span>
+                            </div>
+                        </div>
+                    `;
+                });
+                document.getElementById('lvl-disp').innerText = Game.state.level;
+            },
+
+            renderShop() {
+                const list = document.getElementById('tab-market');
+                list.innerHTML = "";
+                UPGRADES.forEach(u => {
+                    const lvl = Game.state.upgrades[u.id];
+                    const cost = Math.floor(u.cost * Math.pow(u.mult, lvl));
+                    const afford = Game.state.money >= cost;
+                    
+                    list.innerHTML += `
+                        <div class="shop-item ${afford?'':'disabled'}" onclick="Game.buy('${u.id}')">
+                            <div class="item-icon">${u.icon}</div>
+                            <div class="item-details">
+                                <div class="item-title">${u.name} <span style="font-size:0.7em; color:#666">Lvl ${lvl}</span></div>
+                                <div class="item-desc">${u.desc}</div>
+                            </div>
+                            <div class="item-price">${cost} ₿</div>
+                        </div>
+                    `;
+                });
+            },
+
+            log(msg, type="log-info") {
+                const con = document.getElementById('console-log');
+                const div = document.createElement('div');
+                div.className = `log-entry ${type}`;
+                div.innerText = `> ${msg}`;
+                con.prepend(div);
+                if(con.children.length > 20) con.lastChild.remove();
+            },
+
+            spawnFloat(txt, color) {
+                const el = document.createElement('div');
+                el.className = 'float-txt';
+                el.innerText = txt;
+                el.style.color = color;
+                // Center screen spawn
+                const core = document.getElementById('neural-core').getBoundingClientRect();
+                el.style.left = (core.left + core.width/2 - 30) + 'px';
+                el.style.top = (core.top) + 'px';
+                document.body.appendChild(el);
+                setTimeout(()=>el.remove(), 1000);
+            },
+
+            switchTab(tab) {
+                document.getElementById('tab-market').style.display = tab==='market'?'block':'none';
+                document.getElementById('tab-logs').style.display = tab==='logs'?'block':'none';
+                
+                document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+                event.target.classList.add('active');
+            }
+        };
 
     </script>
 </body>
