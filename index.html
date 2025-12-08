@@ -2,627 +2,143 @@
 <html lang="tr">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <title>CYBER BREACH: SYSTEM OVERRIDE [V10]</title>
-    <style>
-        /* --- 1. CORE VISUALS --- */
-        :root {
-            --bg-color: #050505;
-            --panel-bg: rgba(10, 15, 20, 0.95);
-            --c-cyan: #00f3ff;
-            --c-red: #ff003c;
-            --c-yellow: #fcee0a;
-            --c-green: #00ff88;
-            --font-main: 'Segoe UI', sans-serif;
-            --font-mono: 'Courier New', monospace;
-        }
-
-        * { box-sizing: border-box; user-select: none; cursor: crosshair; }
-        
-        body {
-            margin: 0; background-color: var(--bg-color); color: #fff;
-            font-family: var(--font-main); height: 100vh; overflow: hidden;
-            display: flex; justify-content: center; align-items: center;
-        }
-
-        /* --- 2. GLITCH & FX --- */
-        .scanlines {
-            position: fixed; inset: 0; pointer-events: none; z-index: 900;
-            background: linear-gradient(to bottom, rgba(255,255,255,0), rgba(255,255,255,0) 50%, rgba(0,0,0,0.1) 50%, rgba(0,0,0,0.1));
-            background-size: 100% 4px; opacity: 0.7;
-        }
-
-        /* Ağır Glitch Efekti (Risk yüksekken aktifleşir) */
-        body.glitch-active {
-            animation: glitch-anim 0.2s infinite;
-        }
-        
-        body.glitch-active .panel {
-            border-color: var(--c-red);
-            box-shadow: 0 0 20px var(--c-red);
-        }
-
-        @keyframes glitch-anim {
-            0% { transform: translate(0) }
-            20% { transform: translate(-3px, 3px); filter: hue-rotate(90deg); }
-            40% { transform: translate(-3px, -3px); filter: invert(0.1); }
-            60% { transform: translate(3px, 3px); }
-            80% { transform: translate(3px, -3px); filter: hue-rotate(-90deg); }
-            100% { transform: translate(0) }
-        }
-
-        /* --- 3. LAYOUT --- */
-        #game-container {
-            display: grid; grid-template-columns: 300px 1fr 350px; gap: 15px;
-            width: 98vw; height: 96vh; max-width: 1920px; z-index: 10;
-        }
-
-        .panel {
-            background: var(--panel-bg); border: 1px solid #333; border-radius: 4px;
-            display: flex; flex-direction: column; overflow: hidden; position: relative;
-            box-shadow: 0 0 30px rgba(0,0,0,0.8);
-        }
-
-        .p-header {
-            padding: 15px; background: rgba(0, 243, 255, 0.05); border-bottom: 1px solid #333;
-            font-family: var(--font-mono); font-weight: bold; color: var(--c-cyan); letter-spacing: 1px;
-            display: flex; justify-content: space-between;
-        }
-
-        .p-body { flex-grow: 1; overflow-y: auto; padding: 10px; }
-
-        /* --- 4. CENTER DECK --- */
-        #deck {
-            display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%; position: relative;
-        }
-
-        /* Top Stats */
-        .hud-stats {
-            position: absolute; top: 0; width: 100%; padding: 20px;
-            display: flex; justify-content: space-around;
-        }
-        .stat-box { text-align: center; }
-        .stat-val { font-family: var(--font-mono); font-size: 1.5rem; font-weight: bold; }
-
-        /* Hack Core */
-        #core-btn {
-            width: 240px; height: 240px; border-radius: 50%;
-            border: 4px solid var(--c-cyan);
-            background: radial-gradient(circle, rgba(0, 243, 255, 0.1), rgba(0,0,0,0.9));
-            box-shadow: 0 0 50px rgba(0, 243, 255, 0.2);
-            display: flex; flex-direction: column; justify-content: center; align-items: center;
-            cursor: pointer; transition: 0.1s; position: relative; z-index: 20;
-        }
-        #core-btn:active { transform: scale(0.95); border-color: #fff; box-shadow: 0 0 80px var(--c-cyan); }
-        #core-btn.danger { border-color: var(--c-red); box-shadow: 0 0 60px var(--c-red); animation: shake 0.3s infinite; }
-
-        /* Skills */
-        .skills-container { display: flex; gap: 15px; margin-top: 40px; }
-        .skill-btn {
-            width: 70px; height: 70px; background: #111; border: 1px solid #444; border-radius: 5px;
-            display: flex; flex-direction: column; align-items: center; justify-content: center;
-            cursor: pointer; position: relative; overflow: hidden; transition: 0.2s;
-        }
-        .skill-btn:hover { border-color: var(--c-yellow); }
-        .skill-btn.locked { opacity: 0.5; cursor: not-allowed; border-color: var(--c-red); }
-        
-        .cd-overlay {
-            position: absolute; bottom: 0; left: 0; width: 100%; height: 0%;
-            background: rgba(255, 0, 0, 0.5); transition: height 0.1s linear;
-        }
-        .skill-key { position: absolute; top: 2px; left: 4px; font-size: 0.7rem; color: #888; font-family: var(--font-mono); }
-
-        /* Bars */
-        .bars-area { width: 400px; margin-top: 30px; }
-        .bar-row { margin-bottom: 15px; }
-        .bar-label { display: flex; justify-content: space-between; font-size: 0.8rem; font-weight: bold; margin-bottom: 3px; }
-        .track { height: 10px; background: #000; border: 1px solid #333; overflow: hidden; }
-        .fill { height: 100%; width: 0%; transition: width 0.1s linear; }
-
-        /* --- 5. MARKET ITEMS --- */
-        .shop-item {
-            display: flex; align-items: center; padding: 12px; background: rgba(255,255,255,0.02);
-            border: 1px solid #333; margin-bottom: 8px; cursor: pointer; transition: 0.2s;
-        }
-        .shop-item:hover { background: rgba(0, 243, 255, 0.05); border-color: var(--c-yellow); }
-        .shop-item.disabled { opacity: 0.4; filter: grayscale(1); pointer-events: none; }
-        
-        .s-icon { font-size: 1.5rem; margin-right: 15px; width: 30px; text-align: center; }
-        .s-info { flex-grow: 1; }
-        .s-name { font-weight: bold; font-size: 0.9rem; color: #fff; }
-        .s-desc { font-size: 0.75rem; color: #aaa; }
-        .s-cost { font-family: var(--font-mono); color: var(--c-yellow); font-weight: bold; font-size: 0.9rem; }
-
-        /* --- 6. TARGETS --- */
-        .target-item {
-            padding: 15px; border: 1px solid #333; margin-bottom: 10px; background: rgba(0,0,0,0.3);
-            cursor: pointer; transition: 0.2s;
-        }
-        .target-item:hover { transform: translateX(5px); border-color: var(--c-cyan); }
-        .target-item.active { border-color: var(--c-green); background: rgba(0, 255, 136, 0.05); box-shadow: inset 4px 0 0 var(--c-green); }
-        .target-item.locked { opacity: 0.3; pointer-events: none; }
-
-        /* --- 7. ANIMATIONS --- */
-        @keyframes shake { 0% { transform: translate(1px, 1px) } 25% { transform: translate(-2px, -2px) } 50% { transform: translate(2px, 0px) } 75% { transform: translate(-1px, 2px) } }
-        .float-txt {
-            position: absolute; font-weight: bold; font-family: var(--font-mono); pointer-events: none;
-            animation: floatUp 1s forwards; z-index: 100; text-shadow: 0 0 5px black;
-        }
-        @keyframes floatUp { 0% { opacity:1; transform:translateY(0); } 100% { opacity:0; transform:translateY(-50px); } }
-
-        /* Crash Overlay */
-        #crash-screen {
-            position: fixed; inset: 0; background: #000; z-index: 2000; display: none;
-            flex-direction: column; justify-content: center; align-items: center;
-            font-family: var(--font-mono);
-        }
-        .boot-line { color: var(--c-green); width: 600px; margin-bottom: 2px; }
-
-    </style>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NEON HACKER: SYSTEM BREACH</title>
+    <link rel="stylesheet" href="style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&display=swap" rel="stylesheet">
 </head>
 <body>
 
     <div class="scanlines"></div>
-
-    <div id="crash-screen">
-        <div style="color:var(--c-red); font-size: 4rem; margin-bottom: 20px; font-weight:900;">FATAL ERROR</div>
-        <div id="boot-log"></div>
+    <div class="noise"></div>
+    
+    <div id="trace-overlay" class="hidden">
+        <div class="eye-symbol">👁</div>
+        <div class="warning-text">TESPİT EDİLİYOR... HAREKETSİZ KAL!</div>
     </div>
 
-    <div id="game-container">
+    <div id="reboot-screen" class="hidden">
+        <div class="bios-text">
+            SYSTEM FAILURE: CRITICAL GLITCH DETECTED<br>
+            KERNEL PANIC - MEMORY DUMP<br>
+            REBOOTING SYSTEM...<br>
+            <span id="reboot-timer">15</span>
+        </div>
+    </div>
+
+    <div id="game-over-screen" class="hidden">
+        <h1>SİSTEME YAKALANDIN</h1>
+        <p>IP ADRESİN TESPİT EDİLDİ. TUTUKLANDIN.</p>
+        <button onclick="hardReset()">FABRİKA AYARLARINA DÖN</button>
+    </div>
+
+    <div class="container">
         
-        <div class="panel">
-            <div class="p-header">
-                <span>HEDEFLER</span>
-                <span>LVL <span id="lvl-disp">1</span></span>
-            </div>
-            <div class="p-body" id="target-list"></div>
-            <div style="padding:10px; font-size:0.7rem; color:#666; text-align:center;">
-                SYSTEM_ID: #8842-AX
-            </div>
-        </div>
+        <header>
+            <div class="stat-box">HACK PUANI (HP): <span id="hp-display">0</span></div>
+            <div class="stat-box">PARA (TRY): <span id="money-display">0.00</span> ₺</div>
+            <div class="stat-box warning">STRIKES: <span id="strike-display">0</span>/10</div>
+            <div class="stat-box glitch">GLITCH: %<span id="glitch-display">0</span></div>
+        </header>
 
-        <div class="panel" style="background: transparent; border: none; box-shadow: none;">
-            <div id="deck">
-                <div class="hud-stats">
-                    <div class="stat-box">
-                        <div style="font-size:0.8rem; color:#888;">VERİ</div>
-                        <div class="stat-val" style="color:var(--c-cyan)"><span id="data-disp">0</span> TB</div>
-                    </div>
-                    <div class="stat-box">
-                        <div class="stat-val" style="color:var(--c-yellow)"><span id="money-disp">0</span> ₿</div>
-                        <div style="font-size:0.8rem; color:#888;">BAKİYE</div>
-                    </div>
-                </div>
+        <nav>
+            <button class="nav-btn active" onclick="switchTab('hack-panel')">HACK PANEL</button>
+            <button class="nav-btn" onclick="switchTab('inventory-panel')">ENVANTER</button>
+            <button class="nav-btn" onclick="switchTab('market-panel')">MARKET (SATIŞ)</button>
+            <button class="nav-btn" onclick="switchTab('bank-panel')">BANKA / DÖVİZ</button>
+            <button class="nav-btn" onclick="switchTab('upgrade-panel')">YÜKSELTME</button>
+            <button class="nav-btn" onclick="switchTab('settings-panel')">AYARLAR</button>
+        </nav>
 
-                <div id="core-btn" onmousedown="Game.hack(event)">
-                    <div style="font-size:3rem; pointer-events:none;">☠</div>
-                    <div style="font-family:var(--font-mono); letter-spacing:2px; color:var(--c-cyan); pointer-events:none;">BAĞLAN</div>
-                </div>
+        <main id="content-area">
 
-                <div class="bars-area">
-                    <div class="bar-row">
-                        <div class="bar-label"><span style="color:var(--c-cyan)">SIZMA</span><span id="breach-txt">0%</span></div>
-                        <div class="track"><div id="bar-breach" class="fill" style="background:var(--c-cyan); box-shadow:0 0 10px var(--c-cyan);"></div></div>
+            <div id="hack-panel" class="tab-content active">
+                <div class="hack-zone">
+                    <div id="terminal-log">
+                        <p>> Sistem başlatıldı...</p>
+                        <p>> Hedef sunucu aranıyor...</p>
                     </div>
-                    <div class="bar-row">
-                        <div class="bar-label"><span style="color:var(--c-red)">RİSK / ISI</span><span id="risk-txt">0%</span></div>
-                        <div class="track"><div id="bar-risk" class="fill" style="background:var(--c-red);"></div></div>
+                    
+                    <div class="progress-container">
+                        <label>SIZMA DURUMU</label>
+                        <div class="progress-bar-bg">
+                            <div id="infiltration-bar" class="progress-bar-fill" style="width: 0%;"></div>
+                        </div>
+                        <span id="infiltration-text">%0</span>
                     </div>
-                </div>
 
-                <div class="skills-container">
-                    <div class="skill-btn" id="skill-brute" onclick="Game.useSkill('brute')">
-                        <div class="skill-key">Q</div>
-                        <div style="font-size:1.5rem">⚡</div>
-                        <div style="font-size:0.6rem; color:#aaa;">BRUTE</div>
-                        <div id="cd-brute" class="cd-overlay"></div>
-                    </div>
-                    <div class="skill-btn" id="skill-worm" onclick="Game.useSkill('worm')">
-                        <div class="skill-key">W</div>
-                        <div style="font-size:1.5rem">🦠</div>
-                        <div style="font-size:0.6rem; color:#aaa;">WORM</div>
-                        <div id="cd-worm" class="cd-overlay"></div>
-                    </div>
-                    <div class="skill-btn" id="skill-ghost" onclick="Game.useSkill('ghost')">
-                        <div class="skill-key">E</div>
-                        <div style="font-size:1.5rem">👻</div>
-                        <div style="font-size:0.6rem; color:#aaa;">GHOST</div>
-                        <div id="cd-ghost" class="cd-overlay"></div>
-                    </div>
-                    <div class="skill-btn" id="skill-flush" onclick="Game.useSkill('flush')">
-                        <div class="skill-key">R</div>
-                        <div style="font-size:1.5rem">❄️</div>
-                        <div style="font-size:0.6rem; color:#aaa;">FLUSH</div>
-                        <div id="cd-flush" class="cd-overlay"></div>
-                    </div>
+                    <button id="hack-btn">HACK BAŞLAT (TIKLA)</button>
                 </div>
             </div>
-        </div>
 
-        <div class="panel">
-            <div class="p-header">
-                <span>KARABORSA</span>
-                <span id="passive-disp" style="font-size:0.8rem; color:#aaa;">0/sn</span>
+            <div id="inventory-panel" class="tab-content">
+                <h3>TOPLANAN VERİLER</h3>
+                <div id="inventory-list" class="grid-list">
+                    </div>
             </div>
-            <div class="p-body" id="market-list">
-                </div>
-        </div>
 
+            <div id="market-panel" class="tab-content">
+                <h3>KARABORSA SATIŞ KANALLARI</h3>
+                <div class="market-options">
+                    <div class="market-card">
+                        <h4>Anon P2P Market</h4>
+                        <p>Risk: Düşük | Çarpan: x0.8</p>
+                        <button onclick="game.market.sellAll('p2p')">TÜMÜNÜ SAT</button>
+                    </div>
+                    <div class="market-card">
+                        <h4>Aracı Broker</h4>
+                        <p>Risk: Orta | Çarpan: x1.0</p>
+                        <button onclick="game.market.sellAll('broker')">TÜMÜNÜ SAT</button>
+                    </div>
+                    <div class="market-card danger">
+                        <h4>Karanlık Pazar</h4>
+                        <p>Risk: Yüksek | Çarpan: x1.5</p>
+                        <button onclick="game.market.sellAll('darkweb')">TÜMÜNÜ SAT</button>
+                    </div>
+                    <div class="market-card premium">
+                        <h4>Kurumsal Suç Çetesi</h4>
+                        <p>Risk: Özel | Çarpan: x2.0</p>
+                        <button onclick="game.market.sellAll('syndicate')">TÜMÜNÜ SAT</button>
+                    </div>
+                </div>
+            </div>
+
+            <div id="bank-panel" class="tab-content">
+                <h3>GLOBAL DÖVİZ BORSASI (CANLI)</h3>
+                <div id="currency-ticker">Güncelleme: <span id="currency-timer">10</span>s</div>
+                <div id="currency-list" class="grid-list">
+                    </div>
+                <div class="exchange-controls">
+                    <input type="number" id="exchange-amount" placeholder="Miktar (TRY)">
+                    <select id="currency-select">
+                        <option value="USD">USD</option>
+                        <option value="EUR">EUR</option>
+                        <option value="GOLD">GOLD</option>
+                        <option value="BTC">BITCOIN</option>
+                    </select>
+                    <button onclick="game.bank.buyCurrency()">SATIN AL</button>
+                    <button onclick="game.bank.sellCurrency()">BOZDUR (TRY'ye)</button>
+                </div>
+            </div>
+
+            <div id="upgrade-panel" class="tab-content">
+                <h3>SİSTEM YÜKSELTMELERİ</h3>
+                <div id="upgrade-list" class="grid-list">
+                    </div>
+            </div>
+
+            <div id="settings-panel" class="tab-content">
+                <h3>SİSTEM AYARLARI</h3>
+                <button onclick="game.saveSystem.clearSave()">SAVE DOSYASINI SİL (RESET)</button>
+                <div class="system-logs">
+                    <h4>SON SİSTEM LOGLARI</h4>
+                    <ul id="full-logs"></ul>
+                </div>
+            </div>
+
+        </main>
     </div>
 
-    <script>
-        /* --- SES SİSTEMİ (Web Audio API) --- */
-        const AudioSys = {
-            ctx: null,
-            init() {
-                if(!this.ctx) this.ctx = new (window.AudioContext || window.webkitAudioContext)();
-            },
-            play(type) {
-                if(!this.ctx) this.init();
-                if(this.ctx.state === 'suspended') this.ctx.resume();
-
-                const t = this.ctx.currentTime;
-                const osc = this.ctx.createOscillator();
-                const gain = this.ctx.createGain();
-
-                if(type === 'click') {
-                    osc.frequency.setValueAtTime(600, t);
-                    osc.frequency.exponentialRampToValueAtTime(100, t+0.1);
-                    gain.gain.setValueAtTime(0.1, t);
-                    gain.gain.exponentialRampToValueAtTime(0.01, t+0.1);
-                    osc.type = 'triangle';
-                } 
-                else if(type === 'money') {
-                    osc.frequency.setValueAtTime(1200, t);
-                    osc.frequency.linearRampToValueAtTime(1800, t+0.1);
-                    gain.gain.setValueAtTime(0.1, t);
-                    gain.gain.exponentialRampToValueAtTime(0.01, t+0.2);
-                    osc.type = 'square';
-                }
-                else if(type === 'skill') {
-                    osc.frequency.setValueAtTime(400, t);
-                    osc.frequency.linearRampToValueAtTime(800, t+0.3);
-                    gain.gain.setValueAtTime(0.2, t);
-                    gain.gain.linearRampToValueAtTime(0, t+0.3);
-                    osc.type = 'sawtooth';
-                }
-                else if(type === 'error') {
-                    osc.frequency.setValueAtTime(150, t);
-                    osc.frequency.linearRampToValueAtTime(50, t+0.3);
-                    gain.gain.setValueAtTime(0.2, t);
-                    gain.gain.exponentialRampToValueAtTime(0.01, t+0.3);
-                    osc.type = 'sawtooth';
-                }
-
-                osc.connect(gain);
-                gain.connect(this.ctx.destination);
-                osc.start();
-                osc.stop(t+0.4);
-            }
-        };
-
-        /* --- VERİLER --- */
-        const TARGETS = [
-            { id: 0, name: "Ev Ağı", hp: 200, sec: 1.0, reward: 100, req: 1 },
-            { id: 1, name: "Yerel Sunucu", hp: 600, sec: 1.5, reward: 300, req: 2 },
-            { id: 2, name: "Banka Terminali", hp: 2000, sec: 2.5, reward: 1000, req: 4 },
-            { id: 3, name: "Kurumsal Veritabanı", hp: 6000, sec: 4.0, reward: 3500, req: 7 },
-            { id: 4, name: "Askeri Uydu", hp: 20000, sec: 6.0, reward: 10000, req: 10 },
-            { id: 5, name: "Yapay Zeka Çekirdeği", hp: 50000, sec: 9.0, reward: 50000, req: 15 }
-        ];
-
-        const UPGRADES = [
-            { id: 'cpu', name: 'CPU Overclock', desc: 'Tıklama Gücü +2', base: 100, mult: 1.5, icon: '⚡' },
-            { id: 'ram', name: 'Quantum RAM', desc: 'Yetenek Beklemesi -%10', base: 500, mult: 1.6, icon: '💾' },
-            { id: 'bot', name: 'Botnet Node', desc: 'Oto Hack +5/sn', base: 250, mult: 1.4, icon: '🤖' },
-            { id: 'cool', name: 'Liquid Cooling', desc: 'Risk Düşüşü ++', base: 200, mult: 1.5, icon: '❄️' },
-            { id: 'mine', name: 'Crypto Miner', desc: 'Pasif Gelir +10/sn', base: 1000, mult: 1.4, icon: '⛏️' }
-        ];
-
-        /* --- OYUN MOTORU --- */
-        const Game = {
-            state: {
-                money: 100,
-                data: 0,
-                level: 1,
-                targetId: 0,
-                breach: 0,
-                risk: 0,
-                crashed: false,
-                stats: { click: 5, auto: 0, cool: 0.1, passive: 0, cdr: 1.0 },
-                upgrades: { cpu:0, ram:0, bot:0, cool:0, mine:0 }
-            },
-            
-            // Skill Cooldowns (Mevcut süre / Toplam süre)
-            skills: {
-                brute: { cur: 0, max: 30, active: false },
-                worm: { cur: 0, max: 45, active: false },
-                ghost: { cur: 0, max: 40, active: false },
-                flush: { cur: 0, max: 20, active: false }
-            },
-
-            init() {
-                this.renderTargets();
-                this.renderShop();
-                this.updateUI();
-                
-                // Game Loop (60 FPS)
-                setInterval(() => this.loop(), 1000/60);
-                
-                // Klavye Kısayolları
-                window.addEventListener('keydown', (e) => {
-                    if(e.key==='q') this.useSkill('brute');
-                    if(e.key==='w') this.useSkill('worm');
-                    if(e.key==='e') this.useSkill('ghost');
-                    if(e.key==='r') this.useSkill('flush');
-                });
-            },
-
-            loop() {
-                if(this.state.crashed) return;
-                const dt = 1/60;
-
-                // 1. Passive Income & Auto Hack
-                if(this.state.stats.passive > 0) this.state.money += this.state.stats.passive * dt;
-                if(this.state.stats.auto > 0) {
-                    this.state.breach += this.state.stats.auto * dt;
-                    // Botlar hafif risk üretir
-                    this.state.risk += 0.02; 
-                }
-
-                // 2. Risk Decay (Passive Cooling)
-                if(this.state.risk > 0) {
-                    this.state.risk -= this.state.stats.cool;
-                    if(this.state.risk < 0) this.state.risk = 0;
-                }
-
-                // 3. Skill Cooldowns
-                for(let key in this.skills) {
-                    if(this.skills[key].cur > 0) {
-                        this.skills[key].cur -= dt;
-                        if(this.skills[key].cur < 0) this.skills[key].cur = 0;
-                    }
-                }
-
-                // 4. Glitch Effect
-                if(this.state.risk > 80) document.body.classList.add('glitch-active');
-                else document.body.classList.remove('glitch-active');
-
-                // 5. Fail Check
-                if(this.state.risk >= 100) this.crash();
-
-                this.checkWin();
-                this.updateUI();
-            },
-
-            // --- ACTIONS ---
-            hack(e) {
-                if(this.state.crashed) return;
-                const t = TARGETS[this.state.targetId];
-                
-                // Breach
-                this.state.breach += this.state.stats.click;
-                
-                // Risk (Güvenlik seviyesine göre artar)
-                this.state.risk += t.sec * 1.2;
-
-                // FX
-                AudioSys.play('click');
-                this.spawnFloat(e.clientX, e.clientY, `+${this.state.stats.click}`);
-                
-                // Anim
-                const btn = document.getElementById('core-btn');
-                btn.style.transform = "scale(0.95)";
-                setTimeout(()=>btn.style.transform="scale(1)", 50);
-
-                this.checkWin();
-            },
-
-            useSkill(name) {
-                if(this.state.crashed) return;
-                const s = this.skills[name];
-                
-                if(s.cur <= 0) {
-                    AudioSys.play('skill');
-                    
-                    // Efektler
-                    if(name === 'brute') {
-                        this.state.breach += this.state.stats.click * 20;
-                        this.state.risk += 15; // Riskli ama güçlü
-                        this.spawnFloat(window.innerWidth/2, window.innerHeight/2, "BRUTE FORCE!", "#ff003c");
-                    }
-                    if(name === 'worm') {
-                        this.state.breach += 500;
-                        this.spawnFloat(window.innerWidth/2, window.innerHeight/2, "WORM UPLOADED", "#00ff88");
-                    }
-                    if(name === 'ghost') {
-                        this.state.risk = 0; // Riski sıfırla
-                        this.spawnFloat(window.innerWidth/2, window.innerHeight/2, "LOGS CLEARED", "#bc13fe");
-                    }
-                    if(name === 'flush') {
-                        this.state.risk -= 50; // Büyük soğutma
-                        if(this.state.risk < 0) this.state.risk = 0;
-                        this.spawnFloat(window.innerWidth/2, window.innerHeight/2, "COOLANT FLUSH", "#00f3ff");
-                    }
-
-                    // CDR (RAM Upgrade) Uygula
-                    // Base CDR is 1.0. RAM upgrades reduce cooldown.
-                    let maxTime = s.max * this.state.stats.cdr;
-                    s.cur = maxTime;
-                } else {
-                    AudioSys.play('error');
-                }
-            },
-
-            buy(id) {
-                const item = UPGRADES.find(u => u.id === id);
-                const lvl = this.state.upgrades[id];
-                const cost = Math.floor(item.base * Math.pow(item.mult, lvl));
-
-                if(this.state.money >= cost) {
-                    this.state.money -= cost;
-                    this.state.upgrades[id]++;
-                    
-                    // Statları Güncelle
-                    if(id === 'cpu') this.state.stats.click += 2;
-                    if(id === 'bot') this.state.stats.auto += 5;
-                    if(id === 'cool') this.state.stats.cool += 0.05;
-                    if(id === 'mine') this.state.stats.passive += 10;
-                    if(id === 'ram') this.state.stats.cdr *= 0.9; // %10 Cooldown düşüşü (Multiplicative)
-
-                    AudioSys.play('money');
-                    this.renderShop();
-                } else {
-                    AudioSys.play('error');
-                }
-            },
-
-            setTarget(id) {
-                if(this.state.crashed) return;
-                const t = TARGETS[id];
-                if(this.state.level < t.req) {
-                    AudioSys.play('error'); return;
-                }
-                this.state.targetId = id;
-                this.state.breach = 0;
-                this.state.risk = 0;
-                this.renderTargets();
-            },
-
-            checkWin() {
-                const t = TARGETS[this.state.targetId];
-                if(this.state.breach >= t.hp) {
-                    this.state.breach = 0;
-                    this.state.money += t.reward;
-                    this.state.data += t.req * 5;
-                    
-                    // Level Up
-                    if(this.state.data >= this.state.level * 50) {
-                        this.state.level++;
-                        this.renderTargets();
-                    }
-
-                    AudioSys.play('money');
-                    this.updateUI();
-                }
-            },
-
-            crash() {
-                if(this.state.crashed) return;
-                this.state.crashed = true;
-                AudioSys.play('error');
-                document.body.classList.remove('glitch-active');
-                
-                const scr = document.getElementById('crash-screen');
-                const log = document.getElementById('boot-log');
-                scr.style.display = 'flex';
-                log.innerHTML = '';
-
-                // Boot Animasyonu
-                const lines = ["SYSTEM FAILURE: RISK OVERFLOW", "DUMPING MEMORY...", "REBOOTING KERNEL...", "SYSTEM RESTORED."];
-                let i = 0;
-                const int = setInterval(() => {
-                    if(i < lines.length) {
-                        log.innerHTML += `<div class="boot-line">> ${lines[i]}</div>`;
-                        i++;
-                    } else {
-                        clearInterval(int);
-                        setTimeout(() => {
-                            this.state.crashed = false;
-                            this.state.risk = 50; // Cezalı başlangıç
-                            scr.style.display = 'none';
-                        }, 1500);
-                    }
-                }, 800);
-            },
-
-            // --- UI FUNCTIONS ---
-            updateUI() {
-                document.getElementById('money-disp').innerText = Math.floor(this.state.money).toLocaleString();
-                document.getElementById('data-disp').innerText = this.state.data;
-                document.getElementById('lvl-disp').innerText = this.state.level;
-                document.getElementById('passive-disp').innerText = this.state.stats.passive.toFixed(1) + "/sn";
-
-                const t = TARGETS[this.state.targetId];
-                const bPct = Math.min(100, (this.state.breach / t.hp) * 100);
-                document.getElementById('bar-breach').style.width = bPct + "%";
-                document.getElementById('breach-txt').innerText = Math.floor(bPct) + "%";
-
-                document.getElementById('bar-risk').style.width = Math.min(100, this.state.risk) + "%";
-                document.getElementById('risk-txt').innerText = Math.floor(this.state.risk) + "%";
-
-                // Skill Overlays
-                for(let key in this.skills) {
-                    const s = this.skills[key];
-                    const max = s.max * this.state.stats.cdr; // Dynamic Max
-                    const pct = (s.cur / max) * 100;
-                    document.getElementById(`cd-${key}`).style.height = pct + "%";
-                    
-                    const btn = document.getElementById(`skill-${key}`);
-                    if(s.cur > 0) btn.classList.add('locked');
-                    else btn.classList.remove('locked');
-                }
-
-                // Core Danger
-                if(this.state.risk > 80) document.getElementById('core-btn').classList.add('danger');
-                else document.getElementById('core-btn').classList.remove('danger');
-            },
-
-            renderTargets() {
-                const list = document.getElementById('target-list');
-                list.innerHTML = "";
-                TARGETS.forEach(t => {
-                    const locked = this.state.level < t.req;
-                    const active = this.state.targetId === t.id;
-                    list.innerHTML += `
-                        <div class="target-item ${locked?'locked':''} ${active?'active':''}" onclick="Game.setTarget(${t.id})">
-                            <div style="font-weight:bold; color:white;">${t.name}</div>
-                            <div style="font-size:0.75rem; color:#aaa; display:flex; justify-content:space-between;">
-                                <span>Risk: x${t.sec}</span>
-                                <span style="color:var(--c-yellow)">${t.reward} ₿</span>
-                            </div>
-                        </div>
-                    `;
-                });
-            },
-
-            renderShop() {
-                const list = document.getElementById('market-list');
-                list.innerHTML = "";
-                UPGRADES.forEach(u => {
-                    const lvl = this.state.upgrades[u.id];
-                    const cost = Math.floor(u.base * Math.pow(u.mult, lvl));
-                    const afford = this.state.money >= cost;
-                    
-                    list.innerHTML += `
-                        <div class="shop-item ${afford?'':'disabled'}" onclick="Game.buy('${u.id}')">
-                            <div class="s-icon">${u.icon}</div>
-                            <div class="s-info">
-                                <div class="s-name">${u.name} <span style="color:#666; font-size:0.8em">Lvl ${lvl}</span></div>
-                                <div class="s-desc">${u.desc}</div>
-                            </div>
-                            <div class="s-cost">${cost} ₿</div>
-                        </div>
-                    `;
-                });
-            },
-
-            spawnFloat(x, y, txt, color="#fff") {
-                const el = document.createElement('div');
-                el.className = 'float-txt';
-                el.innerText = txt;
-                el.style.left = (x - 20) + "px";
-                el.style.top = (y - 30) + "px";
-                el.style.color = color;
-                document.body.appendChild(el);
-                setTimeout(()=>el.remove(), 1000);
-            }
-        };
-
-        // Start
-        Game.init();
-
-    </script>
+    <script src="script.js"></script>
 </body>
 </html>
