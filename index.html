@@ -3,12 +3,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>CYBER BREACH: ULTIMATE</title>
+    <title>CYBER BREACH: SYSTEM FAILURE</title>
     <style>
         /* --- VISUAL CORE --- */
         :root {
             --bg-dark: #050505;
-            --panel-bg: rgba(15, 20, 30, 0.9);
+            --panel-bg: rgba(10, 12, 16, 0.95);
             --neon-cyan: #00f3ff;
             --neon-pink: #ff0055;
             --neon-green: #00ff66;
@@ -22,150 +22,138 @@
             margin: 0; background-color: var(--bg-dark); color: white;
             font-family: var(--font-main); height: 100vh; overflow: hidden;
             display: flex; justify-content: center; align-items: center;
-            perspective: 1000px;
         }
 
-        /* Arkaplan Animasyonu */
+        /* Glitch Efekti (Risk Arttıkça Body'e Eklenir) */
+        .glitch-effect {
+            animation: glitch-anim 0.2s infinite;
+        }
+
+        @keyframes glitch-anim {
+            0% { transform: translate(0) }
+            20% { transform: translate(-2px, 2px) }
+            40% { transform: translate(-2px, -2px) }
+            60% { transform: translate(2px, 2px) }
+            80% { transform: translate(2px, -2px) }
+            100% { transform: translate(0) }
+        }
+
+        /* Arkaplan */
         .cyber-grid {
             position: absolute; width: 200vw; height: 200vh;
-            background-image: linear-gradient(rgba(0, 243, 255, 0.05) 1px, transparent 1px),
-            linear-gradient(90deg, rgba(0, 243, 255, 0.05) 1px, transparent 1px);
-            background-size: 50px 50px;
-            transform: rotateX(60deg) translateY(-100px) translateZ(-200px);
-            animation: gridMove 10s linear infinite; z-index: -2;
+            background-image: linear-gradient(rgba(0, 243, 255, 0.03) 1px, transparent 1px),
+            linear-gradient(90deg, rgba(0, 243, 255, 0.03) 1px, transparent 1px);
+            background-size: 40px 40px;
+            transform: perspective(500px) rotateX(60deg) translateY(-100px) translateZ(-200px);
+            animation: gridMove 20s linear infinite; z-index: -2;
         }
-        @keyframes gridMove { 0% { transform: rotateX(60deg) translateY(0); } 100% { transform: rotateX(60deg) translateY(50px); } }
+        @keyframes gridMove { 0% { transform: perspective(500px) rotateX(60deg) translateY(0); } 100% { transform: perspective(500px) rotateX(60deg) translateY(40px); } }
 
-        /* CRT Ekran Efekti */
+        /* CRT Ekran Çizgileri */
         .scanlines {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: repeating-linear-gradient(0deg, rgba(0,0,0,0.15), rgba(0,0,0,0.15) 1px, transparent 1px, transparent 2px);
-            pointer-events: none; z-index: 100;
+            background: repeating-linear-gradient(0deg, rgba(0,0,0,0.1), rgba(0,0,0,0.1) 1px, transparent 1px, transparent 2px);
+            pointer-events: none; z-index: 50;
         }
 
         /* --- LAYOUT --- */
         #game-layout {
-            display: grid; grid-template-columns: 300px 1fr 300px; gap: 20px;
-            width: 95vw; height: 90vh; max-width: 1600px; z-index: 10;
+            display: grid; grid-template-columns: 300px 1fr 320px; gap: 15px;
+            width: 98vw; height: 95vh; max-width: 1800px; z-index: 10;
+            transition: opacity 0.2s;
         }
 
         .panel {
-            background: var(--panel-bg); border: 1px solid rgba(0, 243, 255, 0.3);
-            padding: 20px; display: flex; flex-direction: column;
-            box-shadow: 0 0 30px rgba(0,0,0,0.5); backdrop-filter: blur(10px);
-            border-radius: 5px; position: relative; overflow: hidden;
-        }
-        .panel::before {
-            content: ''; position: absolute; top: 0; left: 0; width: 100%; height: 2px;
-            background: linear-gradient(90deg, transparent, var(--neon-cyan), transparent);
-            animation: scanHorizontal 3s infinite linear;
+            background: var(--panel-bg); border: 1px solid rgba(0, 243, 255, 0.2);
+            padding: 15px; display: flex; flex-direction: column;
+            box-shadow: 0 0 20px rgba(0,0,0,0.8); backdrop-filter: blur(5px);
+            border-radius: 4px; position: relative; overflow: hidden;
         }
 
         h2 { 
-            font-size: 1.1rem; border-bottom: 1px solid #333; padding-bottom: 10px; 
-            margin: 0 0 15px 0; color: var(--neon-cyan); text-shadow: 0 0 10px var(--neon-cyan);
+            font-size: 1rem; border-bottom: 1px solid #333; padding-bottom: 8px; 
+            margin: 0 0 10px 0; color: var(--neon-cyan); text-shadow: 0 0 5px var(--neon-cyan);
             display: flex; justify-content: space-between; align-items: center;
         }
 
-        /* --- TARGET LIST --- */
-        .target-item {
-            padding: 12px; margin-bottom: 8px; border: 1px solid #333;
-            background: rgba(0,0,0,0.3); transition: 0.3s; position: relative;
-        }
-        .target-item:hover { border-color: var(--neon-cyan); background: rgba(0, 243, 255, 0.1); }
-        .target-item.active { border: 1px solid var(--neon-cyan); box-shadow: inset 0 0 20px rgba(0, 243, 255, 0.2); }
-        .target-item.locked { opacity: 0.4; filter: grayscale(100%); cursor: not-allowed; }
-        
-        .t-name { font-weight: bold; font-size: 1rem; color: #fff; }
-        .t-info { font-size: 0.75rem; color: #aaa; margin-top: 4px; display: flex; justify-content: space-between; }
-
-        /* --- MAIN HACK BUTTON --- */
+        /* --- HACK BUTTON --- */
         #hack-container {
             flex-grow: 1; display: flex; flex-direction: column; 
             align-items: center; justify-content: center; position: relative;
         }
 
         #hack-btn {
-            width: 240px; height: 240px; border-radius: 50%;
-            border: 4px solid var(--neon-cyan);
-            background: radial-gradient(circle, rgba(0, 243, 255, 0.1) 0%, rgba(0,0,0,0.8) 100%);
+            width: 250px; height: 250px; border-radius: 50%;
+            border: 5px solid var(--neon-cyan);
+            background: radial-gradient(circle, rgba(0, 243, 255, 0.1) 0%, rgba(0,0,0,0.9) 100%);
             display: flex; flex-direction: column; justify-content: center; align-items: center;
-            box-shadow: 0 0 50px rgba(0, 243, 255, 0.2), inset 0 0 20px rgba(0, 243, 255, 0.2);
-            transition: 0.1s; position: relative; z-index: 5;
+            box-shadow: 0 0 40px rgba(0, 243, 255, 0.15), inset 0 0 20px rgba(0, 243, 255, 0.1);
+            transition: 0.1s; position: relative; z-index: 5; cursor: pointer;
         }
-        #hack-btn:active { transform: scale(0.92); box-shadow: 0 0 80px rgba(0, 243, 255, 0.6); border-color: white; }
-        #hack-btn.danger { border-color: var(--neon-pink); box-shadow: 0 0 50px rgba(255, 0, 85, 0.4); animation: shake 0.3s infinite; }
-        
-        .btn-icon { font-size: 4rem; text-shadow: 0 0 20px var(--neon-cyan); pointer-events: none; }
-        .btn-text { margin-top: 10px; font-size: 0.9rem; letter-spacing: 2px; color: var(--neon-cyan); pointer-events: none; }
+        #hack-btn:active { transform: scale(0.95); border-color: white; box-shadow: 0 0 60px var(--neon-cyan); }
+        #hack-btn.danger { border-color: var(--neon-pink); animation: shake 0.3s infinite; box-shadow: 0 0 50px var(--neon-pink); }
 
-        /* --- STATS & BARS --- */
-        .stat-row { display: flex; justify-content: space-between; margin-bottom: 20px; width: 100%; padding: 0 20px; }
-        .stat-box { text-align: center; }
-        .stat-label { font-size: 0.7rem; color: #888; letter-spacing: 1px; }
-        .stat-val { font-size: 1.5rem; font-weight: bold; text-shadow: 0 0 10px currentColor; }
-        
-        .bar-wrapper { width: 80%; margin-top: 30px; }
-        .bar-label { display: flex; justify-content: space-between; font-size: 0.8rem; margin-bottom: 5px; font-weight: bold; }
-        .progress-bar { height: 15px; background: #111; border: 1px solid #444; position: relative; overflow: hidden; border-radius: 2px; }
+        .btn-icon { font-size: 4.5rem; pointer-events: none; text-shadow: 0 0 15px currentColor; }
+
+        /* --- BARS & STATS --- */
+        .progress-bar { height: 12px; background: #000; border: 1px solid #444; position: relative; overflow: hidden; margin-top: 5px; }
         .fill { height: 100%; width: 0%; transition: width 0.1s linear; }
         
-        /* --- SHOP --- */
+        /* Level Bar */
+        #xp-container { width: 100%; margin-bottom: 20px; }
+        #xp-bar { height: 6px; background: #333; margin-top: 5px; }
+        #xp-fill { height: 100%; background: var(--neon-gold); width: 0%; box-shadow: 0 0 10px var(--neon-gold); }
+
+        /* --- SHOP ITEMS --- */
         .upgrade {
-            display: flex; align-items: center; padding: 10px; margin-bottom: 10px;
-            background: rgba(255,255,255,0.03); border: 1px solid #333; transition: 0.2s;
+            display: flex; align-items: center; padding: 10px; margin-bottom: 8px;
+            background: rgba(255,255,255,0.02); border: 1px solid #333; transition: 0.2s; cursor: pointer;
         }
-        .upgrade:hover { background: rgba(255, 204, 0, 0.1); border-color: var(--neon-gold); }
-        .upgrade.disabled { opacity: 0.5; pointer-events: none; }
-        
-        .up-icon { font-size: 1.5rem; margin-right: 15px; }
+        .upgrade:hover { background: rgba(255, 204, 0, 0.05); border-color: var(--neon-gold); }
+        .upgrade.disabled { opacity: 0.4; pointer-events: none; filter: grayscale(1); }
+        .up-icon { font-size: 1.5rem; margin-right: 10px; width: 30px; text-align: center; }
         .up-info { flex-grow: 1; }
-        .up-name { font-weight: bold; font-size: 0.9rem; color: white; }
-        .up-desc { font-size: 0.7rem; color: #aaa; }
-        .up-cost { font-weight: bold; color: var(--neon-gold); }
+        .up-name { font-weight: bold; font-size: 0.9rem; color: #fff; }
+        .up-desc { font-size: 0.7rem; color: #888; }
+        .up-cost { font-weight: bold; color: var(--neon-gold); font-size: 0.9rem; }
 
-        /* --- LOG --- */
-        #console-log {
-            height: 150px; background: #000; border: 1px solid #333;
-            padding: 10px; overflow-y: hidden; font-size: 0.75rem; 
-            color: var(--neon-green); font-family: 'Consolas', monospace;
-            display: flex; flex-direction: column-reverse; /* Yeni loglar altta */
+        /* --- CRASH SCREEN OVERLAY --- */
+        #crash-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: black; z-index: 9999; display: none;
+            flex-direction: column; justify-content: center; align-items: center;
+            font-family: 'Courier New', monospace;
         }
-        .log-line { margin-bottom: 4px; animation: fadeIn 0.3s; }
+        .crash-text { color: var(--neon-pink); font-size: 2rem; margin-bottom: 20px; text-align: center; }
+        .boot-text { color: var(--neon-green); font-size: 1rem; text-align: left; width: 80%; margin-top: 5px; }
+        .cursor { animation: blink 1s infinite; }
+        @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0; } }
 
-        /* --- ANIMATIONS & FX --- */
-        @keyframes scanHorizontal { 0% { top: 0%; } 100% { top: 100%; } }
-        @keyframes shake { 0% { transform: translate(1px, 1px) rotate(0deg); } 25% { transform: translate(-2px, -2px) rotate(-1deg); } 50% { transform: translate(2px, 0px) rotate(1deg); } 75% { transform: translate(-1px, 2px) rotate(0deg); } 100% { transform: translate(1px, -1px) rotate(-1deg); } }
-        @keyframes fadeIn { from { opacity: 0; transform: translateX(-10px); } to { opacity: 1; transform: translateX(0); } }
-
-        /* Parçacık Efekti (0 ve 1) */
-        .particle {
-            position: absolute; font-size: 1.2rem; font-weight: bold;
-            pointer-events: none; animation: flyOut 0.8s forwards;
-            color: var(--neon-green); text-shadow: 0 0 5px var(--neon-green);
-            z-index: 99;
-        }
-        @keyframes flyOut { to { transform: translate(var(--tx), var(--ty)) scale(0); opacity: 0; } }
-
+        /* --- ANIMATIONS --- */
         .floating-text {
-            position: absolute; font-size: 1.2rem; font-weight: bold; 
-            animation: floatUp 1s forwards; pointer-events: none; z-index: 99;
+            position: absolute; font-size: 1.5rem; font-weight: bold; 
+            animation: floatUp 0.8s forwards; pointer-events: none; z-index: 100;
+            text-shadow: 0 0 5px black;
         }
-        @keyframes floatUp { 0% { transform: translateY(0); opacity: 1; } 100% { transform: translateY(-50px); opacity: 0; } }
+        @keyframes floatUp { 0% { transform: translateY(0) scale(1); opacity: 1; } 100% { transform: translateY(-80px) scale(1.5); opacity: 0; } }
 
-        /* Müzik Butonu */
-        #music-toggle {
-            position: absolute; top: 20px; right: 20px; z-index: 200;
-            background: transparent; border: 1px solid var(--neon-cyan); color: var(--neon-cyan);
-            padding: 5px 15px; font-family: inherit; font-size: 0.8rem; cursor: pointer;
-            text-transform: uppercase;
+        #console-log {
+            height: 150px; background: #000; border: 1px solid #333; padding: 10px;
+            font-size: 0.75rem; color: var(--neon-green); overflow: hidden;
+            display: flex; flex-direction: column-reverse;
         }
-        #music-toggle:hover { background: var(--neon-cyan); color: black; }
+        .log-line { margin-bottom: 3px; border-left: 2px solid var(--neon-green); padding-left: 5px; }
 
-        /* Mobil */
+        /* Music Toggle */
+        #music-btn {
+            position: absolute; top: 15px; right: 15px; z-index: 200;
+            background: black; border: 1px solid var(--neon-cyan); color: var(--neon-cyan);
+            padding: 5px 10px; cursor: pointer; font-size: 0.8rem;
+        }
+
         @media (max-width: 900px) {
-            #game-layout { grid-template-columns: 1fr; overflow-y: auto; height: auto; display: block; }
-            .panel { margin-bottom: 20px; }
+            #game-layout { grid-template-columns: 1fr; display: flex; flex-direction: column; overflow-y: auto; }
+            .panel { margin-bottom: 10px; }
         }
     </style>
 </head>
@@ -173,205 +161,214 @@
 
     <div class="cyber-grid"></div>
     <div class="scanlines"></div>
-    
-    <button id="music-toggle" onclick="game.toggleMusic()">MÜZİĞİ BAŞLAT [OFF]</button>
+
+    <button id="music-btn" onclick="game.toggleAudio()">SES: KAPALI</button>
+
+    <div id="crash-overlay">
+        <div class="crash-text" id="crash-title">SYSTEM FAILURE</div>
+        <div id="boot-sequence"></div>
+    </div>
 
     <div id="game-layout">
         
         <div class="panel">
             <h2>HEDEF SİSTEMLER</h2>
-            <div id="target-list">
-                </div>
+            <div id="target-list"></div>
             
             <div style="margin-top: auto;">
-                <h2>SİSTEM GÜNLÜĞÜ <span style="font-size:0.7rem; color:#666;">AUTO-CLEAR: 10s</span></h2>
+                <h2>SİSTEM GÜNLÜĞÜ</h2>
                 <div id="console-log"></div>
             </div>
         </div>
 
         <div class="panel" id="hack-container">
-            <div class="stat-row">
-                <div class="stat-box">
-                    <div class="stat-label">TOPLAM VERİ</div>
-                    <div class="stat-val" style="color: var(--neon-cyan);" id="disp-data">0 TB</div>
+            <div style="width: 100%; display: flex; justify-content: space-between; margin-bottom: 20px;">
+                <div style="text-align: center;">
+                    <div style="color:#888; font-size:0.8rem;">UPTIME</div>
+                    <div id="uptime-display" style="color:white; font-weight:bold;">00:00:00</div>
                 </div>
-                <div class="stat-box">
-                    <div class="stat-label">KRİPTO BAKİYE</div>
-                    <div class="stat-val" style="color: var(--neon-gold);" id="disp-money">0 ₿</div>
+                <div style="text-align: center;">
+                    <div style="color:#888; font-size:0.8rem;">BAKİYE</div>
+                    <div id="money-display" style="color:var(--neon-gold); font-size:1.5rem; font-weight:bold;">0 ₿</div>
                 </div>
             </div>
 
+            <div id="xp-container">
+                <div style="display:flex; justify-content:space-between; font-size:0.8rem;">
+                    <span style="color:var(--neon-cyan);">SEVİYE <span id="lvl-display">1</span></span>
+                    <span style="color:#888;">XP</span>
+                </div>
+                <div id="xp-bar"><div id="xp-fill"></div></div>
+            </div>
+
             <div style="font-size: 0.8rem; color: #888; margin-bottom: 10px;">
-                ZAMAN ÇARPANI: <span id="disp-multi" style="color:white; font-weight:bold;">x1.0</span> (+0.1 / 10sn)
+                ZAMAN ÇARPANI: <span id="time-multi" style="color:white; font-weight:bold;">x1.0</span>
             </div>
 
             <div id="hack-btn" onclick="game.hack(event)">
                 <div class="btn-icon">☠</div>
-                <div class="btn-text">BAĞLAN</div>
-                <div id="cps-display" style="position: absolute; bottom: 30px; font-size: 0.7rem; color: #aaa;">0 CPS</div>
+                <div style="margin-top:10px; letter-spacing:2px; color:var(--neon-cyan);">BAĞLAN</div>
+                <div id="cps-meter" style="position: absolute; bottom: 30px; font-size: 0.7rem; color: #666;">READY</div>
             </div>
 
-            <div class="bar-wrapper">
-                <div class="bar-label">
-                    <span style="color:var(--neon-green)">SIZMA BAŞARISI</span>
-                    <span id="breach-txt">0%</span>
+            <div style="width: 80%; margin-top: 30px;">
+                <div style="display:flex; justify-content:space-between; font-size:0.8rem; font-weight:bold;">
+                    <span style="color:var(--neon-green)">VERİ AKTARIMI</span>
+                    <span id="breach-val">0%</span>
                 </div>
-                <div class="progress-bar">
-                    <div class="fill" id="breach-bar" style="background: var(--neon-green); box-shadow: 0 0 10px var(--neon-green);"></div>
+                <div class="progress-bar" style="border-color:var(--neon-green);">
+                    <div class="fill" id="breach-bar" style="background:var(--neon-green); box-shadow:0 0 10px var(--neon-green);"></div>
                 </div>
 
-                <div class="bar-label" style="margin-top: 15px;">
-                    <span style="color:var(--neon-pink)">TESPİT RİSKİ (HIZLI TIKLAMA = YÜKSEK RİSK)</span>
-                    <span id="risk-txt">0%</span>
+                <div style="display:flex; justify-content:space-between; font-size:0.8rem; font-weight:bold; margin-top:15px;">
+                    <span style="color:var(--neon-pink)">TESPİT RİSKİ</span>
+                    <span id="risk-val">0%</span>
                 </div>
-                <div class="progress-bar">
-                    <div class="fill" id="risk-bar" style="background: var(--neon-pink); box-shadow: 0 0 10px var(--neon-pink);"></div>
+                <div class="progress-bar" style="border-color:var(--neon-pink);">
+                    <div class="fill" id="risk-bar" style="background:var(--neon-pink); box-shadow:0 0 10px var(--neon-pink);"></div>
                 </div>
             </div>
         </div>
 
         <div class="panel">
-            <h2>KARABORSA <span id="income-txt" style="font-size:0.7rem;">0 ₿/sn</span></h2>
+            <h2>KARABORSA <span id="passive-val" style="font-size:0.7rem;">0/sn</span></h2>
             <div id="shop-list" style="overflow-y: auto; height: 100%;">
                 
                 <div class="upgrade" id="btn-cpu" onclick="game.buy('cpu')">
                     <div class="up-icon">⚡</div>
-                    <div class="up-info">
-                        <div class="up-name">CPU Overclock</div>
-                        <div class="up-desc">Veri kazanımını arttırır.</div>
-                    </div>
+                    <div class="up-info"><div class="up-name">CPU Overclock</div><div class="up-desc">Aktif hack hızını arttırır.</div></div>
                     <div class="up-cost" id="cost-cpu">50</div>
+                </div>
+
+                <div class="upgrade" id="btn-neural" onclick="game.buy('neural')">
+                    <div class="up-icon">🧠</div>
+                    <div class="up-info"><div class="up-name">Sinirsel Ağ</div><div class="up-desc">Tıklama gücü x2.</div></div>
+                    <div class="up-cost" id="cost-neural">500</div>
                 </div>
 
                 <div class="upgrade" id="btn-bot" onclick="game.buy('bot')">
                     <div class="up-icon">🤖</div>
-                    <div class="up-info">
-                        <div class="up-name">Botnet Ağı</div>
-                        <div class="up-desc">Otomatik sızma sağlar.</div>
-                    </div>
+                    <div class="up-info"><div class="up-name">Botnet V1</div><div class="up-desc">Otomatik sızma sağlar.</div></div>
                     <div class="up-cost" id="cost-bot">250</div>
                 </div>
 
                 <div class="upgrade" id="btn-mine" onclick="game.buy('mine')">
                     <div class="up-icon">⛏️</div>
-                    <div class="up-info">
-                        <div class="up-name">Kripto Rig</div>
-                        <div class="up-desc">Pasif gelir üretir.</div>
-                    </div>
+                    <div class="up-info"><div class="up-name">Kripto Rig</div><div class="up-desc">Pasif gelir üretir.</div></div>
                     <div class="up-cost" id="cost-mine">600</div>
+                </div>
+
+                <div class="upgrade" id="btn-server" onclick="game.buy('server')">
+                    <div class="up-icon">⬛</div>
+                    <div class="up-info"><div class="up-name">Kuantum Sunucu</div><div class="up-desc">Devasa pasif gelir.</div></div>
+                    <div class="up-cost" id="cost-server">5000</div>
                 </div>
 
                 <div class="upgrade" id="btn-cool" onclick="game.buy('cool')">
                     <div class="up-icon">❄️</div>
-                    <div class="up-info">
-                        <div class="up-name">Sıvı Soğutma</div>
-                        <div class="up-desc">Risk daha hızlı düşer.</div>
-                    </div>
+                    <div class="up-info"><div class="up-name">Sıvı Soğutma</div><div class="up-desc">Risk düşüşünü hızlandırır.</div></div>
                     <div class="up-cost" id="cost-cool">200</div>
                 </div>
 
                 <div class="upgrade" id="btn-stealth" onclick="game.buy('stealth')">
                     <div class="up-icon">👻</div>
-                    <div class="up-info">
-                        <div class="up-name">Hayalet VPN</div>
-                        <div class="up-desc">Hız bazlı riski azaltır.</div>
-                    </div>
+                    <div class="up-info"><div class="up-name">Hayalet VPN</div><div class="up-desc">Tespit edilmeyi zorlaştırır.</div></div>
                     <div class="up-cost" id="cost-stealth">400</div>
                 </div>
 
             </div>
         </div>
-
     </div>
 
     <script>
-        /* --- SES SİSTEMİ (WEB AUDIO API) --- */
-        class AudioEngine {
+        /* --- SES SİSTEMİ (GLITCH & AMBIENCE) --- */
+        class AudioSystem {
             constructor() {
                 this.ctx = new (window.AudioContext || window.webkitAudioContext)();
-                this.isPlaying = false;
-                this.droneOsc = null;
-                this.filter = null;
+                this.isMuted = true;
+                this.drone = null;
             }
 
-            // Müzik: Karanlık Cyberpunk Drone
-            toggleMusic() {
-                if (this.ctx.state === 'suspended') this.ctx.resume();
+            toggle() {
+                if(this.ctx.state === 'suspended') this.ctx.resume();
+                this.isMuted = !this.isMuted;
+                const btn = document.getElementById('music-btn');
                 
-                if (this.isPlaying) {
-                    this.droneOsc.stop();
-                    this.isPlaying = false;
-                    document.getElementById('music-toggle').innerText = "MÜZİĞİ BAŞLAT [OFF]";
+                if(!this.isMuted) {
+                    this.startDrone();
+                    btn.innerText = "SES: AÇIK";
+                    btn.style.borderColor = "var(--neon-green)";
+                    btn.style.color = "var(--neon-green)";
                 } else {
-                    // Osilatör oluştur (Bas sesi)
-                    this.droneOsc = this.ctx.createOscillator();
-                    this.droneOsc.type = 'sawtooth';
-                    this.droneOsc.frequency.setValueAtTime(55, this.ctx.currentTime); // Düşük frekans (A1)
-
-                    // Filtre (Boğuk ses için)
-                    this.filter = this.ctx.createBiquadFilter();
-                    this.filter.type = 'lowpass';
-                    this.filter.frequency.setValueAtTime(400, this.ctx.currentTime);
-                    
-                    // LFO (Filtreyi hareket ettirmek için - nefes alma efekti)
-                    const lfo = this.ctx.createOscillator();
-                    lfo.type = 'sine';
-                    lfo.frequency.setValueAtTime(0.2, this.ctx.currentTime); // Yavaş
-                    const lfoGain = this.ctx.createGain();
-                    lfoGain.gain.setValueAtTime(300, this.ctx.currentTime);
-                    
-                    lfo.connect(lfoGain);
-                    lfoGain.connect(this.filter.frequency);
-                    lfo.start();
-
-                    // Gain (Ses seviyesi)
-                    const masterGain = this.ctx.createGain();
-                    masterGain.gain.setValueAtTime(0.15, this.ctx.currentTime);
-
-                    // Bağlantı
-                    this.droneOsc.connect(this.filter);
-                    this.filter.connect(masterGain);
-                    masterGain.connect(this.ctx.destination);
-                    
-                    this.droneOsc.start();
-                    this.isPlaying = true;
-                    document.getElementById('music-toggle').innerText = "MÜZİĞİ DURDUR [ON]";
+                    if(this.drone) this.drone.stop();
+                    btn.innerText = "SES: KAPALI";
+                    btn.style.borderColor = "var(--neon-cyan)";
+                    btn.style.color = "var(--neon-cyan)";
                 }
             }
 
-            // Efektler
-            playSFX(type) {
-                if (this.ctx.state === 'suspended') this.ctx.resume();
+            startDrone() {
+                // Karanlık Cyberpunk Ambiyans
+                const osc = this.ctx.createOscillator();
+                osc.type = 'sawtooth';
+                osc.frequency.setValueAtTime(50, this.ctx.currentTime);
+                
+                const filter = this.ctx.createBiquadFilter();
+                filter.type = 'lowpass';
+                filter.frequency.setValueAtTime(200, this.ctx.currentTime);
+
+                // LFO Efekti
+                const lfo = this.ctx.createOscillator();
+                lfo.frequency.value = 0.1;
+                const lfoGain = this.ctx.createGain();
+                lfoGain.gain.value = 100;
+                lfo.connect(lfoGain);
+                lfoGain.connect(filter.frequency);
+                lfo.start();
+
+                const gain = this.ctx.createGain();
+                gain.gain.value = 0.1;
+
+                osc.connect(filter);
+                filter.connect(gain);
+                gain.connect(this.ctx.destination);
+                osc.start();
+                this.drone = osc;
+            }
+
+            sfx(type) {
+                if(this.isMuted) return;
                 const osc = this.ctx.createOscillator();
                 const gain = this.ctx.createGain();
                 const t = this.ctx.currentTime;
 
                 if (type === 'click') {
-                    // Hi-tech click
-                    osc.type = 'triangle';
                     osc.frequency.setValueAtTime(800, t);
                     osc.frequency.exponentialRampToValueAtTime(100, t + 0.1);
                     gain.gain.setValueAtTime(0.1, t);
-                    gain.gain.exponentialRampToValueAtTime(0.01, t + 0.1);
+                    gain.gain.linearRampToValueAtTime(0, t + 0.1);
                     osc.start(t); osc.stop(t + 0.1);
-                } 
-                else if (type === 'money') {
-                    // Coin sesi
+                } else if (type === 'cash') {
                     osc.type = 'square';
-                    osc.frequency.setValueAtTime(1200, t);
-                    osc.frequency.linearRampToValueAtTime(1800, t + 0.1);
+                    osc.frequency.setValueAtTime(1000, t);
+                    osc.frequency.linearRampToValueAtTime(2000, t + 0.1);
                     gain.gain.setValueAtTime(0.1, t);
-                    gain.gain.exponentialRampToValueAtTime(0.01, t + 0.2);
-                    osc.start(t); osc.stop(t + 0.2);
-                }
-                else if (type === 'alert') {
-                    // Alarm sesi
-                    osc.type = 'sawtooth';
-                    osc.frequency.setValueAtTime(150, t);
-                    osc.frequency.linearRampToValueAtTime(100, t + 0.3);
-                    gain.gain.setValueAtTime(0.2, t);
                     gain.gain.linearRampToValueAtTime(0, t + 0.3);
                     osc.start(t); osc.stop(t + 0.3);
+                } else if (type === 'crash') {
+                    // White Noise for Crash
+                    const bufferSize = this.ctx.sampleRate * 2; 
+                    const buffer = this.ctx.createBuffer(1, bufferSize, this.ctx.sampleRate);
+                    const data = buffer.getChannelData(0);
+                    for (let i = 0; i < bufferSize; i++) data[i] = Math.random() * 2 - 1;
+                    const noise = this.ctx.createBufferSource();
+                    noise.buffer = buffer;
+                    noise.connect(gain);
+                    gain.connect(this.ctx.destination);
+                    gain.gain.setValueAtTime(0.5, t);
+                    gain.gain.exponentialRampToValueAtTime(0.01, t + 1);
+                    noise.start(t);
+                    return; 
                 }
 
                 osc.connect(gain);
@@ -379,45 +376,42 @@
             }
         }
 
-        /* --- OYUN MANTIĞI --- */
+        /* --- OYUN VERİSİ --- */
         const TARGETS = [
-            { id: 0, name: "Ev Ağı", hp: 100, sec: 1.0, reward: 10, lvl: 1 },
-            { id: 1, name: "Kafe Wi-Fi", hp: 250, sec: 1.5, reward: 30, lvl: 2 },
-            { id: 2, name: "ATM Sistemi", hp: 600, sec: 2.0, reward: 80, lvl: 3 },
-            { id: 3, name: "Kurumsal Server", hp: 1500, sec: 3.0, reward: 250, lvl: 5 },
-            { id: 4, name: "Devlet Arşivi", hp: 4000, sec: 5.0, reward: 800, lvl: 8 },
-            { id: 5, name: "Küresel Uydu", hp: 10000, sec: 8.0, reward: 2500, lvl: 12 }
+            { id: 0, name: "Ev Ağı", hp: 100, sec: 1.0, reward: 50, lvl: 1 },
+            { id: 1, name: "Kafe Wi-Fi", hp: 300, sec: 1.5, reward: 150, lvl: 2 },
+            { id: 2, name: "ATM Terminali", hp: 800, sec: 2.0, reward: 400, lvl: 3 },
+            { id: 3, name: "Kurumsal Server", hp: 2000, sec: 3.5, reward: 1200, lvl: 5 },
+            { id: 4, name: "Şehir Güç Şebekesi", hp: 5000, sec: 5.0, reward: 3000, lvl: 8 },
+            { id: 5, name: "Merkez Bankası", hp: 15000, sec: 8.0, reward: 10000, lvl: 10 }
         ];
 
-        class CyberGame {
+        class Game {
             constructor() {
-                this.audio = new AudioEngine();
-                
-                // Değişkenler
-                this.money = 500;
-                this.data = 0;
+                this.audio = new AudioSystem();
+                this.money = 100;
+                this.currentXP = 0;
+                this.targetXP = 100;
                 this.level = 1;
-                this.timeMultiplier = 1.0; // Zamanla artan çarpan
+                this.startTime = Date.now();
+                this.timeMulti = 1.0;
                 
-                // İstatistikler
                 this.stats = {
                     clickPower: 2,
-                    riskCooling: 1.5, // Saniyede düşen risk
+                    riskCool: 2.0,
                     autoHack: 0,
-                    passiveIncome: 0,
-                    stealth: 1.0 // CPS cezasını azaltır
+                    passive: 0,
+                    stealth: 1.0
                 };
 
-                // Yükseltmeler
-                this.upgrades = { cpu: 1, bot: 0, mine: 0, cool: 1, stealth: 1 };
+                this.upgrades = { cpu:1, neural:0, bot:0, mine:0, server:0, cool:1, stealth:1 };
                 
-                // Geçici Durum
-                this.currentTargetId = 0;
+                this.targetId = 0;
                 this.breach = 0;
                 this.risk = 0;
-                this.locked = false;
-                this.clickTimes = []; // CPS hesaplamak için tıklama zamanları
-                
+                this.isCrashed = false;
+                this.clicks = [];
+
                 this.init();
             }
 
@@ -425,20 +419,17 @@
                 this.renderTargets();
                 this.updatePrices();
                 
-                // Oyun Döngüsü (60 FPS)
+                // Ana Döngü
                 setInterval(() => this.loop(), 1000/60);
                 
-                // Zaman Çarpanı (10 saniyede bir artar)
+                // Zamanlayıcılar
+                setInterval(() => this.updateTimer(), 1000);
                 setInterval(() => {
-                    if (!this.locked) {
-                        this.timeMultiplier += 0.1;
-                        document.getElementById('disp-multi').innerText = "x" + this.timeMultiplier.toFixed(1);
-                        this.log("Sistem bağlantı süresi arttı. Çarpan: x" + this.timeMultiplier.toFixed(1));
+                    if(!this.isCrashed) {
+                        this.timeMulti += 0.1;
+                        document.getElementById('time-multi').innerText = "x" + this.timeMulti.toFixed(1);
                     }
                 }, 10000);
-
-                // Log Temizliği (10 saniyede bir)
-                setInterval(() => this.cleanLogs(), 10000);
             }
 
             renderTargets() {
@@ -446,10 +437,10 @@
                 list.innerHTML = "";
                 TARGETS.forEach(t => {
                     const el = document.createElement('div');
-                    el.className = `target-item ${this.level < t.lvl ? 'locked' : ''} ${this.currentTargetId === t.id ? 'active' : ''}`;
+                    el.className = `target-item ${this.level < t.lvl ? 'locked' : ''} ${this.targetId === t.id ? 'active' : ''}`;
                     el.innerHTML = `
                         <div class="t-name">${t.name}</div>
-                        <div class="t-info"><span>GÜVENLİK: x${t.sec}</span> <span>ÖDÜL: ${t.reward} ₿</span></div>
+                        <div class="t-info"><span>GÜVENLİK: x${t.sec}</span></div>
                     `;
                     el.onclick = () => { if(this.level >= t.lvl) this.setTarget(t.id); };
                     list.appendChild(el);
@@ -457,47 +448,46 @@
             }
 
             setTarget(id) {
-                this.currentTargetId = id;
+                this.targetId = id;
                 this.breach = 0;
                 this.risk = 0;
                 this.renderTargets();
-                this.log(`Hedef değiştirildi: ${TARGETS[id].name}`);
+                this.log(`HEDEF DEĞİŞTİRİLDİ: ${TARGETS[id].name}`);
             }
 
-            // TIKLAMA HIZI (CPS) ve RİSK HESABI
-            calculateCPS() {
-                const now = Date.now();
-                // 1 saniye önceki tıklamaları filtrele
-                this.clickTimes = this.clickTimes.filter(t => now - t < 1000);
-                return this.clickTimes.length;
+            updateTimer() {
+                const diff = Math.floor((Date.now() - this.startTime) / 1000);
+                const h = Math.floor(diff / 3600).toString().padStart(2,'0');
+                const m = Math.floor((diff % 3600) / 60).toString().padStart(2,'0');
+                const s = (diff % 60).toString().padStart(2,'0');
+                document.getElementById('uptime-display').innerText = `${h}:${m}:${s}`;
             }
 
             hack(e) {
-                if (this.locked) { this.audio.playSFX('alert'); return; }
+                if (this.isCrashed) return;
 
-                // CPS Takibi
-                this.clickTimes.push(Date.now());
-                const cps = this.calculateCPS();
-                document.getElementById('cps-display').innerText = cps + " CPS";
+                // CPS Hesaplama
+                const now = Date.now();
+                this.clicks.push(now);
+                this.clicks = this.clicks.filter(t => now - t < 1000);
+                const cps = this.clicks.length;
+                document.getElementById('cps-meter').innerText = cps + " CPS";
 
-                const target = TARGETS[this.currentTargetId];
+                const t = TARGETS[this.targetId];
                 
-                // Sızma Artışı
+                // Sızma
                 this.breach += this.stats.clickPower;
-
-                // RİSK HESABI: CPS ne kadar yüksekse, risk o kadar katlanarak artar.
-                // Stealth yükseltmesi bu cezayı azaltır.
-                let speedPenalty = (cps * cps) / 15; // Karesel artış (Hızlı tıklama = Ölüm)
-                let baseRisk = target.sec;
-                let finalRisk = (baseRisk + speedPenalty) / this.stats.stealth;
                 
-                this.risk += finalRisk;
+                // Risk (Hız Cezası)
+                let speedPenalty = (cps * cps) / 12; 
+                let addedRisk = (t.sec + speedPenalty) / this.stats.stealth;
+                this.risk += addedRisk;
 
-                // Görsel Efektler
-                this.audio.playSFX('click');
+                // Efektler
+                this.audio.sfx('click');
                 this.spawnParticles(e.clientX, e.clientY);
-                
-                // Hack Butonu Animasyonu
+
+                // Buton Animasyonu
                 const btn = document.getElementById('hack-btn');
                 btn.style.transform = "scale(0.95)";
                 setTimeout(() => btn.style.transform = "scale(1)", 50);
@@ -506,36 +496,48 @@
             }
 
             loop() {
-                // Pasif Gelir
-                if (this.stats.passiveIncome > 0) {
-                    this.money += (this.stats.passiveIncome / 60) * this.timeMultiplier;
-                }
+                if(this.isCrashed) return;
 
-                // Otomatik Bot Hack
-                if (!this.locked && this.stats.autoHack > 0) {
-                    this.breach += this.stats.autoHack / 60;
-                }
+                // Pasif Gelir
+                if(this.stats.passive > 0) this.money += (this.stats.passive / 60) * this.timeMulti;
+                
+                // Auto Hack
+                if(this.stats.autoHack > 0) this.breach += this.stats.autoHack / 60;
 
                 // Risk Soğutma
-                if (!this.locked && this.risk > 0) {
-                    this.risk -= this.stats.riskCooling / 60;
-                    if (this.risk < 0) this.risk = 0;
+                if(this.risk > 0) {
+                    this.risk -= this.stats.riskCool / 60;
+                    if(this.risk < 0) this.risk = 0;
                 }
 
                 // UI Güncelleme
-                document.getElementById('disp-money').innerText = Math.floor(this.money).toLocaleString() + " ₿";
-                document.getElementById('disp-data').innerText = Math.floor(this.data) + " TB";
-                
-                const breachPct = Math.min(100, (this.breach / TARGETS[this.currentTargetId].hp) * 100);
-                document.getElementById('breach-bar').style.width = breachPct + "%";
-                document.getElementById('breach-txt').innerText = Math.floor(breachPct) + "%";
+                document.getElementById('money-display').innerText = Math.floor(this.money).toLocaleString() + " ₿";
+                document.getElementById('passive-val').innerText = (this.stats.passive * this.timeMulti).toFixed(1) + "/sn";
+
+                const t = TARGETS[this.targetId];
+                const bPct = Math.min(100, (this.breach / t.hp) * 100);
+                document.getElementById('breach-bar').style.width = bPct + "%";
+                document.getElementById('breach-val').innerText = Math.floor(bPct) + "%";
 
                 document.getElementById('risk-bar').style.width = Math.min(100, this.risk) + "%";
-                document.getElementById('risk-txt').innerText = Math.floor(this.risk) + "%";
-                document.getElementById('income-txt').innerText = (this.stats.passiveIncome * this.timeMultiplier).toFixed(1) + " ₿/sn";
+                document.getElementById('risk-val').innerText = Math.floor(this.risk) + "%";
 
-                // Tehlike Efekti
+                // XP Bar
+                const xpPct = (this.currentXP / this.targetXP) * 100;
+                document.getElementById('xp-fill').style.width = xpPct + "%";
+
+                // Glitch & Tehlike Efektleri
                 const btn = document.getElementById('hack-btn');
+                const body = document.body;
+                
+                if (this.risk > 50) {
+                    // Risk %50 üstündeyse hafif glitch başlar
+                    if(Math.random() > 0.95) body.classList.add('glitch-effect');
+                    else body.classList.remove('glitch-effect');
+                } else {
+                    body.classList.remove('glitch-effect');
+                }
+
                 if (this.risk > 80) btn.classList.add('danger');
                 else btn.classList.remove('danger');
 
@@ -544,110 +546,95 @@
             }
 
             checkState() {
-                const target = TARGETS[this.currentTargetId];
+                const t = TARGETS[this.targetId];
 
                 // Başarılı Hack
-                if (this.breach >= target.hp) {
+                if (this.breach >= t.hp) {
                     this.breach = 0;
                     
-                    // Ödül Hesabı: Baz Ödül x Zaman Çarpanı (Kripto kazanımı azaltıldı ama çarpanla artıyor)
-                    let finalReward = (target.reward * 0.5) * this.timeMultiplier; 
+                    // ÖDÜL HESAPLAMA (Düzeltildi ve Arttırıldı)
+                    let baseReward = t.reward;
+                    let finalReward = Math.floor(baseReward * this.timeMulti);
                     
                     this.money += finalReward;
-                    this.data += target.lvl * 2;
                     
-                    this.audio.playSFX('money');
-                    this.log(`SIZMA BAŞARILI! +${Math.floor(finalReward)} ₿`);
-                    this.createFloatText(`+${Math.floor(finalReward)}`, '#ffcc00');
-
-                    // Seviye Atlama
-                    if (this.data > this.level * 100) {
+                    // XP ve Level
+                    this.currentXP += t.lvl * 10;
+                    if(this.currentXP >= this.targetXP) {
                         this.level++;
-                        this.log("SEVİYE ATLADINIZ!");
+                        this.currentXP = 0;
+                        this.targetXP = Math.floor(this.targetXP * 1.5);
+                        document.getElementById('lvl-display').innerText = this.level;
+                        this.log(`SEVİYE ATLADINIZ! YENİ SEVİYE: ${this.level}`);
                         this.renderTargets();
                     }
+
+                    this.audio.sfx('cash');
+                    this.spawnFloatText(`+${finalReward} ₿`, '#ffcc00');
+                    this.log(`BAĞLANTI BAŞARILI: ${finalReward} ₿ AKTARILDI`);
                 }
 
-                // Yakalanma
+                // SİSTEM ÇÖKMESİ
                 if (this.risk >= 100) {
                     this.risk = 100;
-                    this.lockSystem();
+                    this.crashSystem();
                 }
             }
 
-            lockSystem() {
-                if(this.locked) return;
-                this.locked = true;
-                this.audio.playSFX('alert');
-                this.log("SİSTEM KİLİTLENDİ! SOĞUTMA BEKLENİYOR...", "red");
+            crashSystem() {
+                if(this.isCrashed) return;
+                this.isCrashed = true;
+                this.audio.sfx('crash');
+
+                // Ekranı gizle / Çökme Ekranını Aç
+                const overlay = document.getElementById('crash-overlay');
+                overlay.style.display = 'flex';
+                document.getElementById('boot-sequence').innerHTML = "";
                 
-                // Zaman Çarpanı Sıfırlanır (Ceza)
-                this.timeMultiplier = 1.0;
-                document.getElementById('disp-multi').innerText = "x1.0";
-                
-                // 5 Saniye Ceza
-                setTimeout(() => {
-                    this.locked = false;
-                    this.risk = 50;
-                    this.log("Bağlantı yeniden kuruldu.");
-                }, 5000);
+                // Zaman Çarpanı Cezası
+                this.timeMulti = 1.0;
+                document.getElementById('time-multi').innerText = "x1.0";
+
+                // Boot Sequence Animasyonu
+                const logs = [
+                    "CRITICAL ERROR: KERNEL PANIC",
+                    "DUMPING PHYSICAL MEMORY...",
+                    "RISK LEVEL CRITICAL",
+                    "INITIATING SAFE MODE...",
+                    "RELOADING DRIVERS...",
+                    "RECONNECTING TO NETWORK...",
+                    "SYSTEM RECOVERED."
+                ];
+
+                let i = 0;
+                const interval = setInterval(() => {
+                    if(i < logs.length) {
+                        const div = document.createElement('div');
+                        div.className = 'boot-text';
+                        div.innerText = "> " + logs[i];
+                        document.getElementById('boot-sequence').appendChild(div);
+                        this.audio.sfx('click'); // Daktilo sesi gibi
+                        i++;
+                    } else {
+                        clearInterval(interval);
+                        setTimeout(() => {
+                            overlay.style.display = 'none';
+                            this.isCrashed = false;
+                            this.risk = 50; // %50 Riskle geri dön
+                            this.log("SİSTEM YENİDEN BAŞLATILDI.", "red");
+                        }, 1000);
+                    }
+                }, 600);
             }
 
-            spawnParticles(x, y) {
-                for (let i = 0; i < 5; i++) {
-                    const p = document.createElement('div');
-                    p.className = 'particle';
-                    p.innerText = Math.random() > 0.5 ? "1" : "0";
-                    p.style.left = x + "px";
-                    p.style.top = y + "px";
-                    
-                    // Rastgele yön
-                    const tx = (Math.random() - 0.5) * 100 + "px";
-                    const ty = (Math.random() - 0.5) * 100 + "px";
-                    p.style.setProperty('--tx', tx);
-                    p.style.setProperty('--ty', ty);
-                    
-                    document.body.appendChild(p);
-                    setTimeout(() => p.remove(), 800);
-                }
-            }
-
-            createFloatText(text, color) {
-                const btn = document.getElementById('hack-btn');
-                const rect = btn.getBoundingClientRect();
-                const el = document.createElement('div');
-                el.className = 'floating-text';
-                el.innerText = text;
-                el.style.left = (rect.left + rect.width/2) + "px";
-                el.style.top = (rect.top) + "px";
-                el.style.color = color;
-                document.body.appendChild(el);
-                setTimeout(() => el.remove(), 1000);
-            }
-
-            log(msg, color="#00ff66") {
-                const con = document.getElementById('console-log');
-                const line = document.createElement('div');
-                line.className = 'log-line';
-                line.style.color = color;
-                line.innerText = `> ${msg}`;
-                con.prepend(line); // En üste ekle
-            }
-
-            cleanLogs() {
-                const con = document.getElementById('console-log');
-                con.innerHTML = "";
-                this.log("Sistem önbelleği temizlendi.", "#00f3ff");
-            }
-
-            toggleMusic() { this.audio.toggleMusic(); }
-
-            /* --- MARKET SİSTEMİ --- */
+            /* --- MARKET --- */
             getCosts() {
                 return {
-                    cpu: Math.floor(50 * Math.pow(1.5, this.upgrades.cpu)),
+                    cpu: Math.floor(50 * Math.pow(1.4, this.upgrades.cpu)),
+                    neural: Math.floor(500 * Math.pow(1.5, this.upgrades.neural)),
                     bot: Math.floor(250 * Math.pow(1.4, this.upgrades.bot)),
                     mine: Math.floor(600 * Math.pow(1.4, this.upgrades.mine)),
+                    server: Math.floor(5000 * Math.pow(1.5, this.upgrades.server)),
                     cool: Math.floor(200 * Math.pow(1.5, this.upgrades.cool)),
                     stealth: Math.floor(400 * Math.pow(1.6, this.upgrades.stealth))
                 };
@@ -656,8 +643,10 @@
             updatePrices() {
                 const c = this.getCosts();
                 document.getElementById('cost-cpu').innerText = c.cpu;
+                document.getElementById('cost-neural').innerText = c.neural;
                 document.getElementById('cost-bot').innerText = c.bot;
                 document.getElementById('cost-mine').innerText = c.mine;
+                document.getElementById('cost-server').innerText = c.server;
                 document.getElementById('cost-cool').innerText = c.cool;
                 document.getElementById('cost-stealth').innerText = c.stealth;
             }
@@ -667,19 +656,20 @@
                 if (this.money >= cost) {
                     this.money -= cost;
                     this.upgrades[type]++;
-                    this.audio.playSFX('click');
-                    
-                    // Özellik Güncelleme
-                    if (type === 'cpu') this.stats.clickPower += 2;
-                    if (type === 'bot') this.stats.autoHack += 5;
-                    if (type === 'mine') this.stats.passiveIncome += 10;
-                    if (type === 'cool') this.stats.riskCooling += 0.5;
-                    if (type === 'stealth') this.stats.stealth += 0.2; // Risk çarpanını böler
+                    this.audio.sfx('click');
+
+                    if(type === 'cpu') this.stats.clickPower += 2;
+                    if(type === 'neural') this.stats.clickPower *= 2; // Güçlü Upgrade
+                    if(type === 'bot') this.stats.autoHack += 5;
+                    if(type === 'mine') this.stats.passive += 10;
+                    if(type === 'server') this.stats.passive += 150;
+                    if(type === 'cool') this.stats.riskCool += 1.0;
+                    if(type === 'stealth') this.stats.stealth += 0.3;
 
                     this.updatePrices();
-                    this.log("Donanım yükseltildi.");
+                    this.log("YÜKSELTME SATIN ALINDI.");
                 } else {
-                    this.audio.playSFX('alert');
+                    this.audio.sfx('crash'); // Hata sesi
                 }
             }
 
@@ -687,23 +677,74 @@
                 const c = this.getCosts();
                 const check = (id, cost) => {
                     const btn = document.getElementById(id);
-                    if (this.money >= cost) {
+                    if(this.money >= cost) {
                         btn.classList.remove('disabled');
                         btn.style.borderColor = 'var(--neon-gold)';
                     } else {
                         btn.classList.add('disabled');
                         btn.style.borderColor = '#333';
                     }
-                };
+                }
                 check('btn-cpu', c.cpu);
+                check('btn-neural', c.neural);
                 check('btn-bot', c.bot);
                 check('btn-mine', c.mine);
+                check('btn-server', c.server);
                 check('btn-cool', c.cool);
                 check('btn-stealth', c.stealth);
             }
+
+            /* --- HELPER --- */
+            log(msg, color="#00ff66") {
+                const con = document.getElementById('console-log');
+                const line = document.createElement('div');
+                line.className = 'log-line';
+                line.style.borderColor = color;
+                line.style.color = color;
+                line.innerText = `> ${msg}`;
+                con.prepend(line);
+                if(con.children.length > 20) con.lastChild.remove();
+            }
+
+            spawnFloatText(text, color) {
+                const btn = document.getElementById('hack-btn');
+                const rect = btn.getBoundingClientRect();
+                const el = document.createElement('div');
+                el.className = 'floating-text';
+                el.innerText = text;
+                el.style.left = (rect.left + rect.width/2 - 20) + "px";
+                el.style.top = (rect.top) + "px";
+                el.style.color = color;
+                document.body.appendChild(el);
+                setTimeout(() => el.remove(), 800);
+            }
+
+            spawnParticles(x, y) {
+                for(let i=0; i<6; i++) {
+                    const p = document.createElement('div');
+                    p.style.position = 'absolute';
+                    p.style.left = x + 'px';
+                    p.style.top = y + 'px';
+                    p.style.width = '4px';
+                    p.style.height = '4px';
+                    p.style.background = 'var(--neon-cyan)';
+                    p.style.pointerEvents = 'none';
+                    p.style.transition = '0.5s';
+                    p.style.zIndex = '99';
+                    document.body.appendChild(p);
+                    
+                    setTimeout(() => {
+                        p.style.transform = `translate(${(Math.random()-0.5)*100}px, ${(Math.random()-0.5)*100}px)`;
+                        p.style.opacity = 0;
+                    }, 10);
+                    setTimeout(() => p.remove(), 500);
+                }
+            }
+
+            toggleAudio() { this.audio.toggle(); }
         }
 
-        const game = new CyberGame();
+        const game = new Game();
 
     </script>
 </body>
