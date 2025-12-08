@@ -3,140 +3,141 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>NEON HACKER: SYSTEM BREACH</title>
+    <title>NEON BREACH: ULTIMATE HACKER</title>
     <link rel="stylesheet" href="style.css">
     <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&display=swap" rel="stylesheet">
 </head>
 <body>
 
-    <div class="scanlines"></div>
-    <div class="noise"></div>
-    
-    <div id="trace-overlay" class="hidden">
-        <div class="eye-symbol">👁</div>
-        <div class="warning-text">TESPİT EDİLİYOR... HAREKETSİZ KAL!</div>
-    </div>
-
-    <div id="reboot-screen" class="hidden">
-        <div class="bios-text">
-            SYSTEM FAILURE: CRITICAL GLITCH DETECTED<br>
-            KERNEL PANIC - MEMORY DUMP<br>
-            REBOOTING SYSTEM...<br>
-            <span id="reboot-timer">15</span>
+    <div id="boot-screen">
+        <div id="bios-text"></div>
+        <div class="loading-bar-container">
+            <div id="boot-bar"></div>
         </div>
     </div>
 
-    <div id="game-over-screen" class="hidden">
-        <h1>SİSTEME YAKALANDIN</h1>
-        <p>IP ADRESİN TESPİT EDİLDİ. TUTUKLANDIN.</p>
-        <button onclick="hardReset()">FABRİKA AYARLARINA DÖN</button>
+    <div id="main-menu" class="hidden">
+        <h1 class="glitch-title" data-text="NEON BREACH">NEON BREACH</h1>
+        <div class="menu-buttons">
+            <button onclick="Game.system.startGame()">SİSTEME GİRİŞ YAP</button>
+            <button onclick="Game.ui.openThemeModal()">TEMA MAĞAZASI</button>
+            <button onclick="alert('v1.0.0 - Stable Build')">SÜRÜM BİLGİSİ</button>
+            <button onclick="Game.saveSystem.resetSave()">VERİLERİ SIFIRLA</button>
+        </div>
     </div>
 
-    <div class="container">
+    <div id="game-container" class="hidden">
         
+        <div id="trace-overlay" class="hidden">
+            <div class="eye-socket">
+                <div class="eye-ball">
+                    <div class="pupil"></div>
+                </div>
+            </div>
+            <div class="warning-text">TESPİT EDİLİYOR... HAREKETSİZ KAL!</div>
+        </div>
+
+        <div id="reboot-overlay" class="hidden">
+            <div class="reboot-content">
+                <h2>CRITICAL SYSTEM FAILURE</h2>
+                <p>KERNEL PANIC - MEMORY DUMP</p>
+                <h1 id="reboot-timer">15</h1>
+            </div>
+        </div>
+
         <header>
-            <div class="stat-box">HACK PUANI (HP): <span id="hp-display">0</span></div>
-            <div class="stat-box">PARA (TRY): <span id="money-display">0.00</span> ₺</div>
-            <div class="stat-box warning">STRIKES: <span id="strike-display">0</span>/10</div>
-            <div class="stat-box glitch">GLITCH: %<span id="glitch-display">0</span></div>
+            <div class="stat">HP: <span id="hp-display">0</span></div>
+            <div class="stat">PARA: <span id="money-display">0.00</span> ₺</div>
+            <div class="stat warning">STRIKE: <span id="strike-display">0</span>/10</div>
+            <div class="stat danger">GLITCH: %<span id="glitch-display">0</span></div>
         </header>
 
         <nav>
-            <button class="nav-btn active" onclick="switchTab('hack-panel')">HACK PANEL</button>
-            <button class="nav-btn" onclick="switchTab('inventory-panel')">ENVANTER</button>
-            <button class="nav-btn" onclick="switchTab('market-panel')">MARKET (SATIŞ)</button>
-            <button class="nav-btn" onclick="switchTab('bank-panel')">BANKA / DÖVİZ</button>
-            <button class="nav-btn" onclick="switchTab('upgrade-panel')">YÜKSELTME</button>
-            <button class="nav-btn" onclick="switchTab('settings-panel')">AYARLAR</button>
+            <button class="nav-btn active" data-tab="hack-panel">HACK PANEL</button>
+            <button class="nav-btn" data-tab="inventory-panel">ENVANTER</button>
+            <button class="nav-btn" data-tab="market-panel">MARKET</button>
+            <button class="nav-btn" data-tab="bank-panel">BANKA</button>
+            <button class="nav-btn" data-tab="upgrade-panel">YÜKSELTME</button>
+            <button class="nav-btn" data-tab="logs-panel">LOGLAR</button>
         </nav>
 
-        <main id="content-area">
-
+        <main>
             <div id="hack-panel" class="tab-content active">
-                <div class="hack-zone">
-                    <div id="terminal-log">
-                        <p>> Sistem başlatıldı...</p>
-                        <p>> Hedef sunucu aranıyor...</p>
-                    </div>
-                    
-                    <div class="progress-container">
-                        <label>SIZMA DURUMU</label>
-                        <div class="progress-bar-bg">
-                            <div id="infiltration-bar" class="progress-bar-fill" style="width: 0%;"></div>
-                        </div>
-                        <span id="infiltration-text">%0</span>
-                    </div>
-
-                    <button id="hack-btn">HACK BAŞLAT (TIKLA)</button>
+                <div class="hack-circle-container">
+                    <button id="hack-btn">HACK</button>
+                </div>
+                <div class="progress-wrapper">
+                    <label>SIZMA İŞLEMİ</label>
+                    <div class="progress-bg"><div id="infiltration-bar" class="progress-fill"></div></div>
+                    <span id="infiltration-text">%0</span>
                 </div>
             </div>
 
             <div id="inventory-panel" class="tab-content">
-                <h3>TOPLANAN VERİLER</h3>
-                <div id="inventory-list" class="grid-list">
-                    </div>
+                <h3>VERİ PAKETLERİ</h3>
+                <div id="inventory-list" class="grid-layout"></div>
             </div>
 
             <div id="market-panel" class="tab-content">
-                <h3>KARABORSA SATIŞ KANALLARI</h3>
-                <div class="market-options">
-                    <div class="market-card">
-                        <h4>Anon P2P Market</h4>
-                        <p>Risk: Düşük | Çarpan: x0.8</p>
-                        <button onclick="game.market.sellAll('p2p')">TÜMÜNÜ SAT</button>
+                <h3>VERİ SATIŞ AĞLARI</h3>
+                <div class="grid-layout">
+                    <div class="card" onclick="Game.market.sellAll('p2p')">
+                        <h4>P2P Network</h4>
+                        <p>Risk: Yok | Çarpan: x0.8</p>
+                        <small>Düşük fiyat, güvenli.</small>
                     </div>
-                    <div class="market-card">
-                        <h4>Aracı Broker</h4>
-                        <p>Risk: Orta | Çarpan: x1.0</p>
-                        <button onclick="game.market.sellAll('broker')">TÜMÜNÜ SAT</button>
+                    <div class="card" onclick="Game.market.sellAll('broker')">
+                        <h4>Data Broker</h4>
+                        <p>Risk: Düşük | Çarpan: x1.0</p>
+                        <small>Standart piyasa.</small>
                     </div>
-                    <div class="market-card danger">
-                        <h4>Karanlık Pazar</h4>
-                        <p>Risk: Yüksek | Çarpan: x1.5</p>
-                        <button onclick="game.market.sellAll('darkweb')">TÜMÜNÜ SAT</button>
+                    <div class="card warning-border" onclick="Game.market.sellAll('crypto')">
+                        <h4>Crypto Cartel</h4>
+                        <p>Risk: Orta | Çarpan: x1.4</p>
+                        <small>Premium ödeme.</small>
                     </div>
-                    <div class="market-card premium">
-                        <h4>Kurumsal Suç Çetesi</h4>
-                        <p>Risk: Özel | Çarpan: x2.0</p>
-                        <button onclick="game.market.sellAll('syndicate')">TÜMÜNÜ SAT</button>
+                    <div class="card danger-border" onclick="Game.market.sellAll('darknet')">
+                        <h4>Dark Market</h4>
+                        <p>Risk: Yüksek | Çarpan: x2.0</p>
+                        <small>Yüksek yakalanma riski.</small>
                     </div>
                 </div>
             </div>
 
             <div id="bank-panel" class="tab-content">
-                <h3>GLOBAL DÖVİZ BORSASI (CANLI)</h3>
-                <div id="currency-ticker">Güncelleme: <span id="currency-timer">10</span>s</div>
-                <div id="currency-list" class="grid-list">
-                    </div>
+                <h3>DÖVİZ BORSASI (<span id="currency-timer">10</span>s)</h3>
+                <div id="currency-list" class="grid-layout"></div>
                 <div class="exchange-controls">
                     <input type="number" id="exchange-amount" placeholder="Miktar (TRY)">
                     <select id="currency-select">
                         <option value="USD">USD</option>
                         <option value="EUR">EUR</option>
-                        <option value="GOLD">GOLD</option>
+                        <option value="GOLD">ALTIN</option>
                         <option value="BTC">BITCOIN</option>
                     </select>
-                    <button onclick="game.bank.buyCurrency()">SATIN AL</button>
-                    <button onclick="game.bank.sellCurrency()">BOZDUR (TRY'ye)</button>
+                    <button onclick="Game.bank.buy()">AL</button>
+                    <button onclick="Game.bank.sell()">SAT</button>
                 </div>
             </div>
 
             <div id="upgrade-panel" class="tab-content">
-                <h3>SİSTEM YÜKSELTMELERİ</h3>
-                <div id="upgrade-list" class="grid-list">
-                    </div>
+                <h3>SİSTEM MODÜLLERİ</h3>
+                <div id="upgrade-list" class="grid-layout"></div>
             </div>
 
-            <div id="settings-panel" class="tab-content">
-                <h3>SİSTEM AYARLARI</h3>
-                <button onclick="game.saveSystem.clearSave()">SAVE DOSYASINI SİL (RESET)</button>
-                <div class="system-logs">
-                    <h4>SON SİSTEM LOGLARI</h4>
-                    <ul id="full-logs"></ul>
-                </div>
+            <div id="logs-panel" class="tab-content">
+                <h3>SİSTEM KAYITLARI</h3>
+                <ul id="log-list"></ul>
             </div>
-
         </main>
+    </div>
+
+    <div id="theme-modal" class="hidden">
+        <div class="modal-content">
+            <h3>TEMA MAĞAZASI</h3>
+            <div id="theme-list" class="grid-layout"></div>
+            <button onclick="Game.ui.closeThemeModal()" style="margin-top:20px; width:100%">KAPAT</button>
+        </div>
     </div>
 
     <script src="script.js"></script>
